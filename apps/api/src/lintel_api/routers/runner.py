@@ -242,11 +242,23 @@ def outcome(app_id: uuid.UUID, body: OutcomeIn, ctx: DeviceCtx) -> dict:
 class MismatchIn(BaseModel):
     diffs: list[dict[str, Any]]
     live_values: dict[str, Any] | None = None
+    adopt: bool = False
 
 
 @router.post("/runner/applications/{app_id}/guard-mismatch")
 def mismatch(app_id: uuid.UUID, body: MismatchIn, ctx: DeviceCtx) -> dict:
-    execution.guard_mismatch(ctx.db, ctx.user, ctx.device, app_id, body.diffs, body.live_values)
+    execution.guard_mismatch(ctx.db, ctx.user, ctx.device, app_id, body.diffs, body.live_values, adopt=body.adopt)
+    return {"ok": True}
+
+
+@router.post("/runner/applications/{app_id}/user-submitted")
+def user_submitted(app_id: uuid.UUID, ctx: DeviceCtx) -> dict:
+    from ..db.models import Application
+
+    app = ctx.db.get(Application, app_id)
+    if app is None:
+        raise not_found("Application not found.")
+    execution.report_user_submitted(ctx.db, ctx.user, app, "sent from the Lintel browser outside the Guard")
     return {"ok": True}
 
 
@@ -257,6 +269,26 @@ def document(sha256: str, ctx: DeviceCtx) -> RawResponse:
     if hashlib.sha256(data).hexdigest() != sha256:
         raise ApiError(500, "hash_mismatch", "Stored document does not match its hash.")
     return RawResponse(data, media_type=doc.content_type, headers={"Content-Disposition": f'attachment; filename="{doc.filename}"'})
+
+
+class PrepareIn(BaseModel):
+    url: str = Field(min_length=4, max_length=500)
+
+
+@router.post("/runner/prepare")
+def prepare(body: PrepareIn, ctx: DeviceCtx) -> dict:
+    """`lintel prepare <url>` from the terminal: add a posting or a careers page."""
+
+    from ..services import discovery
+
+    try:
+        app = discovery.import_posting(ctx.db, ctx.user, body.url)
+        return {"application_id": str(app.id), "link": f"{get_settings().web_origin}/applications/{app.id}"}
+    except ApiError as exc:
+        if exc.code != "not_a_posting":
+            raise
+        company = discovery.add_company(ctx.db, ctx.user, body.url)
+        return {"company_id": str(company.id), "link": f"{get_settings().web_origin}/watchlist"}
 
 
 @router.get("/runner/runs")

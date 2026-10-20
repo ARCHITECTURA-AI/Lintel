@@ -182,6 +182,21 @@ def approve(db: Session, user: User, app: Application, *, payload_hash: str, mod
     return rec
 
 
+def rearm(db: Session, user: User, app: Application) -> ApplicationRun:
+    """Queue a fresh submit run for a live approval. Safe: it starts from a fresh read, never a resend."""
+
+    require_state(app, ApplicationState.approved)
+    rec = db.scalar(select(ApprovalRecord).where(ApprovalRecord.application_id == app.id, ApprovalRecord.consumed_at.is_(None),
+                                                 ApprovalRecord.revoked_at.is_(None)))
+    if rec is None or rec.expires_at <= now():
+        raise conflict("no_approval", "The approval is no longer live. Approve again.")
+    from .grounding import queue_run
+
+    run = queue_run(db, user, app, RunKind.submit.value, payload_hash=app.payload_hash)
+    run.runner_device_id = rec.runner_device_id
+    return run
+
+
 def revoke_approval(db: Session, user: User, app: Application, reason: str = "you revoked the approval") -> None:
     require_state(app, ApplicationState.approved)
     _revoke_live(db, app, reason)
@@ -526,29 +541,31 @@ def record_outcome(db: Session, user: User, device: RunnerDevice, app_id: uuid.U
 
 
 def guard_mismatch(db: Session, user: User, device: RunnerDevice, app_id: uuid.UUID, diffs: list[dict[str, Any]],
-                   live_values: dict[str, Any] | None = None) -> None:
+                   live_values: dict[str, Any] | None = None, *, adopt: bool = False) -> None:
+    """The Guard blocked a click. The approval stays live unless the person chooses to update the payload."""
+
     app = db.get(Application, app_id)
     if app is None:
         raise not_found("Application not found.")
     job = db.get(Job, app.job_id)
-    audit(db, user.id, "runner", "guard.blocked", "application", app_id, fields=[d.get("field_key") for d in diffs])
+    audit(db, user.id, "runner", "guard.blocked", "application", app_id, fields=[d.get("field_key") for d in diffs],
+          adopt=adopt)
+    if not adopt:
+        return
     if app.state == ApplicationState.approved.value:
-        _revoke_live(db, app, "the Submit Guard found differences at the click")
+        _revoke_live(db, app, "you chose to update the payload after the Guard blocked a click")
         for run in db.scalars(select(ApplicationRun).where(ApplicationRun.application_id == app.id, ApplicationRun.kind == "submit",
                                                            ApplicationRun.state.in_(["queued", "running", "waiting_user"]))):
             run.state = "completed"
-            run.ended_reason = "guard blocked the click"
-        transition(db, app, ApplicationState.in_review, actor="runner",
-                   reason="the Submit Guard blocked the click: the form differs from the approval")
-    open_task(db, user.id, "guard_mismatch", title="The Guard blocked a click",
-              body=f"{job.title} at {job.company_name}: {len(diffs)} field(s) in the browser differ from what you approved.",
-              application_id=app.id, data={"diffs": diffs, "has_live_values": bool(live_values)},
-              dedupe_key=f"guard:{app.id}")
+            run.ended_reason = "guard blocked the click; payload update requested"
+        transition(db, app, ApplicationState.in_review, actor="user",
+                   reason="the Guard blocked the click and you sent your edits for re-approval")
     if live_values:
         _adopt_live_values(db, user, app, live_values)
-    notify(db, user.id, "guard.blocked", "The Guard blocked a click",
-           f"{len(diffs)} field(s) differ from your approval for {job.title}.", link=f"/applications/{app.id}", urgent=True,
-           dedupe_key=f"guard:{app.id}:{int(now().timestamp()) // 30}")
+    open_task(db, user.id, "guard_mismatch", title="Re-approve your edits",
+              body=f"{job.title} at {job.company_name}: you changed {len(diffs)} field(s) in the browser. "
+                   "Review the new payload and approve it again.",
+              application_id=app.id, data={"diffs": diffs}, dedupe_key=f"guard:{app.id}")
 
 
 def _adopt_live_values(db: Session, user: User, app: Application, live_values: dict[str, Any]) -> None:
@@ -599,6 +616,10 @@ def sweep(db: Session, user: User) -> dict[str, int]:
         app = db.get(Application, run.application_id)
         if run.kind == "fill" and app.state == ApplicationState.filling.value:
             transition(db, app, ApplicationState.drafted, actor="worker", reason="the runner went quiet during the fill")
+        if run.kind == "submit" and app.state == ApplicationState.approved.value:
+            # No intent was written, so nothing was sent: arm the Guard again for the approved device.
+            db.flush()
+            rearm(db, user, app)
     # 2. intents with no outcome
     cutoff = now() - timedelta(seconds=s.submit_uncertain_after_seconds)
     for app in db.scalars(select(Application).where(Application.state == "submitting", Application.submitted_at < cutoff)):

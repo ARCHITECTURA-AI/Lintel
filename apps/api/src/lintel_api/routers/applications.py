@@ -303,6 +303,12 @@ def approve(app_id: uuid.UUID, body: ApproveIn, ctx: UserCtx) -> dict:
     return {"approval": row(rec, exclude={"payload"}), "state": app.state}
 
 
+@router.post("/{app_id}/arm")
+def arm(app_id: uuid.UUID, ctx: UserCtx) -> dict:
+    app = _app(ctx, app_id)
+    return {"run": row(execution.rearm(ctx.db, ctx.user, app))}
+
+
 @router.post("/{app_id}/revoke")
 def revoke(app_id: uuid.UUID, ctx: UserCtx) -> dict:
     app = _app(ctx, app_id)
