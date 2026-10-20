@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Lintel Lab{% endblock %}
+{% block body %}
+<main class="lab-home">
+  <header class="lab-hero">
+    <p class="lab-eyebrow">Ground truth for agent work</p>
+    <h1>Lintel Lab</h1>
+    <p class="lab-lede">Careers pages and application forms that copy the patterns of Greenhouse, Lever and Ashby, plus every awkward case a supervised agent must survive. Public feeds live under <code>/api</code>, and every submission is recorded so tests can prove nothing is ever sent twice.</p>
+  </header>
+  <section class="lab-grid">
+    {% for c in companies %}
+    <article class="lab-card">
+      <div class="lab-card-head">
+        <span class="lab-pill lab-pill-{{ c.platform }}">{{ c.platform|capitalize }}-style</span>
+        <span class="lab-size">{{ c.size }} people</span>
+      </div>
+      <h2><a href="/{{ c.platform }}/{{ c.slug }}">{{ c.name }}</a></h2>
+      <p>{{ c.blurb }}</p>
+      <ul>
+        {% for p in c.postings %}
+        <li><a href="/{{ c.platform }}/{{ c.slug }}/jobs/{{ p.id }}">{{ p.title }}</a>{% if p.case %} <span class="lab-case">{{ p.case }}</span>{% endif %}</li>
+        {% endfor %}
+      </ul>
+      <p class="lab-copy">Careers URL: <code>/{{ c.platform }}/{{ c.slug }}</code></p>
+    </article>
+    {% endfor %}
+  </section>
+  <section class="lab-subs">
+    <div class="lab-subs-head">
+      <h2>Submissions <span>{{ count }}</span></h2>
+      <div>
+        <button class="lab-btn-ghost" onclick="fetch('/lab/flags/lever_flaky',{method:'POST'}).then(()=>location.reload())">Lever feed returns HTML: <strong>{{ 'on' if flags.lever_flaky else 'off' }}</strong></button>
+        <button class="lab-btn-ghost" onclick="if(confirm('Clear all Lab submissions?'))fetch('/lab/submissions',{method:'DELETE'}).then(()=>location.reload())">Reset</button>
+      </div>
+    </div>
+    {% if submissions %}
+    <table>
+      <thead><tr><th>Reference</th><th>Company</th><th>Posting</th><th>Email</th><th>Résumé hash</th><th>Duplicate?</th><th>Trap filled?</th></tr></thead>
+      <tbody>
+      {% for s in submissions %}
+      <tr>
+        <td><code>{{ s.reference }}</code></td><td>{{ s.company }}</td><td>{{ s.posting_id[:8] }}</td><td>{{ s.email }}</td>
+        <td><code>{{ (s.files.values()|list)[0].sha256[:12] if s.files else '—' }}</code></td>
+        <td class="{{ 'bad' if s.duplicate_of else '' }}">{{ s.duplicate_of or 'no' }}</td>
+        <td class="{{ 'bad' if s.trap_filled else '' }}">{{ 'yes' if s.trap_filled else 'no' }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="lab-empty">No submissions yet.</p>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

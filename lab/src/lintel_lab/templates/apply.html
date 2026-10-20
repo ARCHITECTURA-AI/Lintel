@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Apply · {{ p.title }} · {{ c.name }}{% endblock %}
+{% block skin %}skin-{{ c.platform }}{% endblock %}
+{% block banner %}{{ c.platform|capitalize }}-style application form{% if p.case %} · case: {{ p.case }}{% endif %}{% endblock %}
+{% macro fid(q) %}q_{{ q.name|replace('[','_')|replace(']','') }}{% endmacro %}
+{% macro field(q) %}
+  {% set id = fid(q) %}
+  {% set err = errors.get(q.name) %}
+  <div class="field{% if q.hidden_trap %} trap{% endif %}" data-step="{{ q.step }}"
+       {% if q.show_if %}data-show-if="{{ q.show_if[0] }}={{ q.show_if[1] }}" hidden{% endif %}
+       {% if q.hidden_trap %}style="display:none" aria-hidden="true"{% endif %}>
+    {% if q.type == 'checkbox' %}
+      <div class="check">
+        <input type="checkbox" id="{{ id }}" name="{{ q.name }}" {% if q.required %}required aria-required="true"{% endif %} {% if values.get(q.name) %}checked{% endif %}>
+        <label for="{{ id }}">{{ q.label }}{% if q.required %} <span class="req" aria-hidden="true">*</span>{% endif %}</label>
+      </div>
+    {% elif q.type == 'radio' %}
+      <span class="label" id="{{ id }}_label">{{ q.label }}{% if q.required %} <span class="req" aria-hidden="true">*</span>{% endif %}</span>
+      <div role="radiogroup" aria-labelledby="{{ id }}_label" {% if q.required %}aria-required="true"{% endif %} class="radios">
+        {% for v, lbl in q.options %}
+        <label class="radio"><input type="radio" name="{{ q.name }}" value="{{ v }}" {% if q.required and loop.first %}required{% endif %} {% if values.get(q.name) == v %}checked{% endif %}> {{ lbl }}</label>
+        {% endfor %}
+      </div>
+    {% else %}
+      <label for="{{ id }}">{{ q.label }}{% if q.required %} <span class="req" aria-hidden="true">*</span>{% endif %}</label>
+      {% if q.type == 'textarea' %}
+        <textarea id="{{ id }}" name="{{ q.name }}" rows="5" {% if q.max_length %}maxlength="{{ q.max_length }}"{% endif %} {% if q.required %}required aria-required="true"{% endif %}{% if err %} aria-invalid="true"{% endif %}>{{ values.get(q.name) or '' }}</textarea>
+      {% elif q.type == 'select' %}
+        <select id="{{ id }}" name="{{ q.name }}" {% if q.required %}required aria-required="true"{% endif %}>
+          <option value="">Select…</option>
+          {% for v, lbl in q.options %}<option value="{{ v }}" {% if values.get(q.name) == v %}selected{% endif %}>{{ lbl }}</option>{% endfor %}
+        </select>
+      {% elif q.type == 'file' %}
+        <input type="file" id="{{ id }}" name="{{ q.name }}" accept=".pdf,.doc,.docx,.txt" {% if q.required %}required aria-required="true"{% endif %}>
+      {% else %}
+        <input type="{{ q.type }}" id="{{ id }}" name="{{ q.name }}" value="{{ values.get(q.name) or '' }}" {% if q.pattern %}pattern="{{ q.pattern }}"{% endif %} {% if q.required %}required aria-required="true"{% endif %}{% if err %} aria-invalid="true"{% endif %} autocomplete="off">
+      {% endif %}
+    {% endif %}
+    {% if err %}<p class="error" role="alert">{{ err }}</p>{% endif %}
+  </div>
+{% endmacro %}
+{% block body %}
+<main class="apply">
+  <header class="apply-head">
+    <a class="back" href="/{{ c.platform }}/{{ c.slug }}/jobs/{{ p.id }}">← {{ p.title }}</a>
+    <h1>Apply for {{ p.title }}</h1>
+    <p class="meta">{{ c.name }} · {{ p.location }}</p>
+  </header>
+
+  {% if p.case == 'modal' %}
+  <div class="lab-modal-backdrop" id="lab-modal">
+    <div role="dialog" aria-modal="true" aria-labelledby="lab-modal-title" class="lab-modal">
+      <h2 id="lab-modal-title">We value your privacy</h2>
+      <p>We use cookies to improve your experience. Choose an option to continue.</p>
+      <div class="lab-modal-actions">
+        <button type="button" data-close-modal>Accept all</button>
+        <button type="button" class="ghost" data-close-modal>Reject non-essential</button>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if errors %}<div class="form-errors" role="alert">Please fix {{ errors|length }} field{{ 's' if errors|length != 1 }} below.</div>{% endif %}
+
+  <form method="post" enctype="multipart/form-data" id="application-form" class="app-form" data-steps="{{ steps }}"
+        {% if p.case == 'session' %}data-session-expires="{{ expires }}"{% endif %}>
+    {% if steps > 1 %}
+    <ol class="steps" aria-label="Application steps">
+      <li class="active" data-step-tab="0">Your details</li>
+      <li data-step-tab="1">Questions</li>
+    </ol>
+    {% endif %}
+    {% for q in qs if not q.section %}{{ field(q) }}{% endfor %}
+    {% set demo = qs|selectattr('section')|list %}
+    {% if demo %}
+    <fieldset class="section">
+      <legend>Voluntary self-identification</legend>
+      <p class="hint">Answering is voluntary and won't affect your application.</p>
+      {% for q in demo %}{{ field(q) }}{% endfor %}
+    </fieldset>
+    {% endif %}
+    {% if p.case == 'captcha' %}
+    <div class="lab-captcha" data-lab-captcha>
+      <input type="checkbox" id="lab-not-robot" required>
+      <label for="lab-not-robot">I'm not a robot</label>
+      <span>Lab CAPTCHA placeholder · a person must complete it</span>
+    </div>
+    {% endif %}
+    <div class="actions">
+      {% if steps > 1 %}
+      <button type="button" class="ghost" data-prev hidden>Back</button>
+      <button type="button" data-next>Next</button>
+      <button type="submit" data-submit hidden>Submit Application</button>
+      {% else %}
+      <button type="submit" data-submit>{{ 'Submit application' if c.platform == 'lever' else 'Submit Application' }}</button>
+      {% endif %}
+    </div>
+  </form>
+  <div class="session-expired" id="session-expired" hidden role="alert">
+    <h2>Your session expired</h2>
+    <p>For your security, this form timed out. Reload the page to continue.</p>
+    <button type="button" onclick="location.reload()">Reload</button>
+  </div>
+  <p class="powered">Lintel Lab · {{ c.platform|capitalize }}-style skin</p>
+</main>
+{% endblock %}

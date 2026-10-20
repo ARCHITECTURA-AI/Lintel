@@ -218,3 +218,18 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- Lintel additions ---
+# The Python template above ignores lib/; the web app keeps code there.
+!apps/web/src/lib/
+node_modules/
+.next/
+.turbo/
+*.tsbuildinfo
+next-env.d.ts
+.pnpm-store/
+.data/
+.runner/
+evals/out/
+test-results/
+playwright-report/

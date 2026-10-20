@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Application submitted · {{ c.name }}{% endblock %}
+{% block skin %}skin-{{ c.platform }}{% endblock %}
+{% block body %}
+<main class="confirm" data-lab-confirmation="1">
+  <div class="confirm-mark" aria-hidden="true">✓</div>
+  <h1>Application submitted</h1>
+  <p>Thank you for applying to <strong>{{ p.title }}</strong> at {{ c.name }}. We have received your application.</p>
+  <p class="ref">Reference: <span id="reference">{{ ref }}</span></p>
+</main>
+{% endblock %}

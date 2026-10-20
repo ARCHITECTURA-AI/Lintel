@@ -1,0 +1,23 @@
+[project]
+name = "lintel-runner"
+version = "0.1.0"
+description = "Lintel Local Runner: a headed Playwright browser on your machine, with the Submit Guard."
+requires-python = ">=3.12"
+dependencies = [
+  "lintel-schemas",
+  "lintel-trust",
+  "playwright>=1.48",
+  "httpx>=0.27",
+  "keyring>=25",
+  "langgraph>=0.2",
+]
+
+[project.scripts]
+lintel = "lintel_runner.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/lintel_runner"]
