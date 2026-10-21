@@ -1,4 +1,4 @@
-import { cx } from "./ui";
+import cx from "clsx";
 
 // The lintel: a beam over two posts. It carries the load so a person can walk through.
 export function LintelMark({ className }: { className?: string }) {

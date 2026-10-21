@@ -277,6 +277,7 @@ export interface FollowUpRow {
   draft: string;
   draft_sentences: SentenceRow[];
   status: "scheduled" | "ready" | "sent" | "dismissed";
+  sent_at: string | null;
   job?: { title: string; company_name: string };
   contact?: { name: string; relationship: string; email: string | null } | null;
   application_state?: string;

@@ -96,7 +96,8 @@ def render() -> str:
             lines.append(f"export type {name} = {_ts_type(d)};")
             continue
         lines.append(f"export interface {name} {{")
-        required = set(d.get("required", []))
+        # The API serializes every field (defaults included), so every property is present.
+        required = set(d.get("properties", {}))
         for prop, ps in d.get("properties", {}).items():
             opt = "" if prop in required else "?"
             lines.append(f"  {prop}{opt}: {_ts_type(ps)};")

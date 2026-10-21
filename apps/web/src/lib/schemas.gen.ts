@@ -49,17 +49,17 @@ export interface CanonicalPayload {
   destination: Destination;
   profile_version_id: string;
   answers: Array<PayloadAnswer>;
-  documents?: Array<PayloadDocument>;
-  consents?: Array<PayloadConsent>;
-  action?: "submit";
+  documents: Array<PayloadDocument>;
+  consents: Array<PayloadConsent>;
+  action: "submit";
 }
 
 export interface CheckResult {
   name: "token" | "scope" | "verifier";
   outcome: CheckOutcome;
-  detail?: string;
-  offending?: Array<string>;
-  verdict?: VerifierVerdict | null;
+  detail: string;
+  offending: Array<string>;
+  verdict: VerifierVerdict | null;
 }
 
 export interface Destination {
@@ -70,8 +70,8 @@ export interface Destination {
 
 export interface DraftSentence {
   text: string;
-  supporting_fact_ids?: Array<string>;
-  check?: SentenceCheck | null;
+  supporting_fact_ids: Array<string>;
+  check: SentenceCheck | null;
 }
 
 export interface Fact {
@@ -79,30 +79,30 @@ export interface Fact {
   kind: FactKind;
   claim_scope: ClaimScope;
   statement: string;
-  attributes?: FactAttributes;
+  attributes: FactAttributes;
   source_type: SourceType;
-  source_ref?: string;
-  supersedes_fact_id?: string | null;
-  retracted?: boolean;
-  application_scope_id?: string | null;
-  created_at?: string | null;
+  source_ref: string;
+  supersedes_fact_id: string | null;
+  retracted: boolean;
+  application_scope_id: string | null;
+  created_at: string | null;
 }
 
 export interface FactAttributes {
-  field?: string | null;
-  value?: string | null;
-  employer?: string | null;
-  title?: string | null;
-  school?: string | null;
-  degree?: string | null;
-  issuer?: string | null;
-  start?: string | null;
-  end?: string | null;
-  location?: string | null;
-  skills?: Array<string>;
-  proficiency?: "familiar" | "working" | "expert" | null;
-  country?: string | null;
-  parent_fact_id?: string | null;
+  field: string | null;
+  value: string | null;
+  employer: string | null;
+  title: string | null;
+  school: string | null;
+  degree: string | null;
+  issuer: string | null;
+  start: string | null;
+  end: string | null;
+  location: string | null;
+  skills: Array<string>;
+  proficiency: "familiar" | "working" | "expert" | null;
+  country: string | null;
+  parent_fact_id: string | null;
 }
 
 export interface FactHandle {
@@ -120,7 +120,7 @@ export interface FieldOption {
 export interface FilterConflict {
   filter: string;
   detail: string;
-  severity?: "hard" | "soft";
+  severity: "hard" | "soft";
 }
 
 export interface FitBrief {
@@ -130,24 +130,24 @@ export interface FitBrief {
   recommendation: Recommendation;
   recommendation_reason: string;
   requirements: Array<Requirement>;
-  conflicts?: Array<FilterConflict>;
-  compensation?: string | null;
-  location?: string | null;
+  conflicts: Array<FilterConflict>;
+  compensation: string | null;
+  location: string | null;
 }
 
 export interface FormField {
   field_key: string;
-  section?: string;
+  section: string;
   label: string;
   type: FieldType;
-  required?: boolean;
-  options?: Array<FieldOption>;
-  max_length?: number | null;
-  visible?: boolean;
-  step?: number;
-  is_consent?: boolean;
-  accept?: string | null;
-  locator?: Locator | null;
+  required: boolean;
+  options: Array<FieldOption>;
+  max_length: number | null;
+  visible: boolean;
+  step: number;
+  is_consent: boolean;
+  accept: string | null;
+  locator: Locator | null;
 }
 
 export interface FormModel {
@@ -155,11 +155,11 @@ export interface FormModel {
   host: string;
   page_version: string;
   fields: Array<FormField>;
-  steps?: number;
-  has_submit?: boolean;
-  bot_challenge?: boolean;
-  login_wall?: boolean;
-  source?: "feed" | "runner";
+  steps: number;
+  has_submit: boolean;
+  bot_challenge: boolean;
+  login_wall: boolean;
+  source: "feed" | "runner";
 }
 
 export interface GroundedDraft {
@@ -169,8 +169,8 @@ export interface GroundedDraft {
 
 export interface GuardCheckResult {
   ok: boolean;
-  reasons?: Array<string>;
-  diffs?: Array<GuardFieldDiff>;
+  reasons: Array<string>;
+  diffs: Array<GuardFieldDiff>;
 }
 
 export interface GuardFieldDiff {
@@ -181,23 +181,23 @@ export interface GuardFieldDiff {
 }
 
 export interface Locator {
-  css?: string | null;
-  role?: string | null;
-  name?: string | null;
+  css: string | null;
+  role: string | null;
+  name: string | null;
 }
 
 export interface MappingDecision {
   field_key: string;
   decision: MappingDecisionKind;
-  handle?: string | null;
-  category?: AnswerCategory;
-  reason?: string;
+  handle: string | null;
+  category: AnswerCategory;
+  reason: string;
 }
 
 export interface PayloadAnswer {
   field_key: string;
   value: unknown;
-  fact_ids?: Array<string>;
+  fact_ids: Array<string>;
 }
 
 export interface PayloadConsent {
@@ -208,23 +208,23 @@ export interface PayloadConsent {
 export interface PayloadDocument {
   role: string;
   sha256: string;
-  field_key?: string | null;
+  field_key: string | null;
 }
 
 export interface Requirement {
   text: string;
-  importance?: "must" | "nice";
+  importance: "must" | "nice";
   status: RequirementStatus;
-  evidence_fact_ids?: Array<string>;
-  note?: string;
-  interview_question?: string | null;
+  evidence_fact_ids: Array<string>;
+  note: string;
+  interview_question: string | null;
 }
 
 export interface ResumeBullet {
   id: string;
   section: string;
   text: string;
-  fact_ids?: Array<string>;
+  fact_ids: Array<string>;
 }
 
 export interface RunAssignment {
@@ -234,25 +234,25 @@ export interface RunAssignment {
   apply_url: string;
   support_mode: SupportMode;
   allowed_hosts: Array<string>;
-  permitted_paths?: Array<string>;
-  payload?: CanonicalPayload | null;
-  payload_hash?: string | null;
-  fill_grant?: SignedFillGrant | null;
-  approval?: SignedApproval | null;
-  field_labels?: Record<string, string>;
-  handles?: Record<string, string>;
-  documents?: Array<Record<string, unknown>>;
-  limits?: Record<string, number>;
+  permitted_paths: Array<string>;
+  payload: CanonicalPayload | null;
+  payload_hash: string | null;
+  fill_grant: SignedFillGrant | null;
+  approval: SignedApproval | null;
+  field_labels: Record<string, string>;
+  handles: Record<string, string>;
+  documents: Array<Record<string, unknown>>;
+  limits: Record<string, number>;
 }
 
 export interface RunStepRecord {
   seq: number;
   action: string;
-  field_key?: string | null;
-  value_hash?: string | null;
-  value_len?: number | null;
-  verification?: "ok" | "mismatch" | "error" | "skipped" | "blocked";
-  detail?: string;
+  field_key: string | null;
+  value_hash: string | null;
+  value_len: number | null;
+  verification: "ok" | "mismatch" | "error" | "skipped" | "blocked";
+  detail: string;
 }
 
 export interface SentenceCheck {
@@ -267,7 +267,7 @@ export interface SignedApproval {
   runner_device_id: string;
   expires_at: string;
   signature: string;
-  key_id?: string;
+  key_id: string;
 }
 
 export interface SignedFillGrant {
@@ -277,7 +277,7 @@ export interface SignedFillGrant {
   runner_device_id: string;
   expires_at: string;
   signature: string;
-  key_id?: string;
+  key_id: string;
 }
 
 export interface VariantChange {
@@ -287,8 +287,8 @@ export interface VariantChange {
   after: string;
   from_index: number;
   to_index: number;
-  reason?: string;
-  check?: SentenceCheck | null;
+  reason: string;
+  check: SentenceCheck | null;
 }
 
 export const TERMINAL_STATES: ApplicationState[] = [
