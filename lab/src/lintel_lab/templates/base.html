@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Lintel Lab{% endblock %}</title>
+  <link rel="stylesheet" href="/static/lab.css">
+</head>
+<body class="{% block skin %}skin-lab{% endblock %}">
+  <div class="lab-banner" role="note">
+    <a href="/lab"><strong>Lintel Lab</strong></a>
+    <span>{% block banner %}A local test site for supervised application agents{% endblock %}</span>
+    <span class="lab-banner-note">Not a real employer or platform</span>
+  </div>
+  {% block body %}{% endblock %}
+  <script src="/static/lab.js"></script>
+</body>
+</html>

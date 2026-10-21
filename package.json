@@ -1,0 +1,9 @@
+{
+  "name": "lintel",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "scripts": {
+    "web": "pnpm --dir apps/web dev",
+    "web:build": "pnpm --dir apps/web build"
+  }
+}

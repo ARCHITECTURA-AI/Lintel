@@ -1,0 +1,123 @@
+/* Lintel Lab skins. They copy layout patterns, never a platform's branding. */
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:#1d1d1b;background:#fff}
+a{color:inherit}
+code{font:12.5px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;background:#f2f1ec;padding:1px 5px;border-radius:4px}
+.lab-banner{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:7px 16px;font-size:12.5px;background:#1d1d1b;color:#e9e7df}
+.lab-banner a{text-decoration:none;color:#fff}
+.lab-banner-note{margin-left:auto;opacity:.65}
+
+/* Showcase */
+.skin-lab{background:#f7f6f2}
+.lab-home{max-width:1080px;margin:0 auto;padding:48px 20px 80px}
+.lab-hero h1{font:600 44px/1.1 Georgia,"Times New Roman",serif;margin:6px 0 12px;letter-spacing:-.01em}
+.lab-eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:12px;color:#7a776c;margin:0}
+.lab-lede{max-width:720px;color:#4a4842;font-size:16px}
+.lab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-top:32px}
+.lab-card{background:#fff;border:1px solid #e4e1d8;border-radius:12px;padding:18px}
+.lab-card h2{font-size:18px;margin:10px 0 4px}
+.lab-card h2 a{text-decoration:none}
+.lab-card p{margin:0 0 10px;color:#5d5a52;font-size:14px}
+.lab-card ul{padding-left:18px;margin:0 0 10px;font-size:14px}
+.lab-card li{margin:3px 0}
+.lab-card-head{display:flex;justify-content:space-between;align-items:center}
+.lab-pill{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;background:#eceae3}
+.lab-pill-greenhouse{background:#e3f1ea;color:#1c5c45}
+.lab-pill-lever{background:#e7ecf6;color:#2c4372}
+.lab-pill-ashby{background:#efe9f8;color:#4f3584}
+.lab-size{font-size:12px;color:#8a877d}
+.lab-case{font-size:11px;background:#fff3d6;color:#7a5600;border-radius:4px;padding:0 5px}
+.lab-copy{font-size:12.5px!important}
+.lab-subs{margin-top:40px;background:#fff;border:1px solid #e4e1d8;border-radius:12px;padding:18px;overflow-x:auto}
+.lab-subs-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.lab-subs h2{font-size:18px;margin:0}
+.lab-subs h2 span{font-size:13px;color:#8a877d;font-weight:500}
+.lab-subs table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}
+.lab-subs th,.lab-subs td{text-align:left;padding:7px 8px;border-top:1px solid #efede6}
+.lab-subs th{color:#7a776c;font-weight:500}
+.lab-subs td.bad{color:#b42318;font-weight:600}
+.lab-empty{color:#8a877d}
+.lab-btn-ghost{font:inherit;font-size:12.5px;border:1px solid #d9d6cc;background:#fff;border-radius:8px;padding:5px 10px;cursor:pointer}
+
+/* Shared form pieces */
+.board,.posting,.apply,.confirm{max-width:760px;margin:0 auto;padding:36px 20px 80px}
+.back{font-size:13.5px;text-decoration:none;opacity:.75}
+.meta{color:#666;margin-top:-4px}
+.desc h3{font-size:16px;margin:22px 0 6px}
+.desc ul{padding-left:20px}
+.apply-cta,.app-form button,.session-expired button,.lab-modal button{font:inherit;font-weight:600;border:0;border-radius:6px;padding:10px 18px;cursor:pointer;text-decoration:none;display:inline-block}
+.app-form .field{margin:0 0 18px}
+.app-form label,.app-form .label{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
+.app-form .req{color:#b42318}
+.app-form input[type=text],.app-form input[type=email],.app-form input[type=tel],.app-form input[type=url],.app-form select,.app-form textarea{width:100%;font:inherit;padding:9px 11px;border:1px solid #c9c9c9;border-radius:5px;background:#fff}
+.app-form input[type=file]{font:inherit;font-size:14px}
+.app-form [aria-invalid=true]{border-color:#b42318;background:#fff8f7}
+.app-form .check{display:flex;gap:10px;align-items:flex-start}
+.app-form .check input{margin-top:4px}
+.app-form .check label{font-weight:500}
+.app-form .radios{display:flex;gap:18px}
+.app-form .radio{font-weight:500;display:flex;gap:6px;align-items:center}
+.app-form .error{color:#b42318;font-size:13px;margin:6px 0 0}
+.app-form fieldset.section{border:0;border-top:1px solid #e3e3e3;padding:18px 0 0;margin:26px 0 18px}
+.app-form legend{font-weight:700;font-size:15px;padding:0}
+.app-form .hint{color:#777;font-size:13px;margin:4px 0 14px}
+.app-form .actions{display:flex;gap:10px;margin-top:22px}
+.app-form button.ghost,.lab-modal button.ghost{background:transparent;border:1px solid #bbb;color:inherit}
+.form-errors{background:#fef3f2;color:#912018;border:1px solid #fecdca;padding:10px 12px;border-radius:6px;margin-bottom:18px}
+.trap{display:none}
+.lab-captcha{display:flex;gap:10px;align-items:center;border:1px solid #d3d3d3;border-radius:4px;padding:14px;background:#f9f9f9;width:fit-content;margin:8px 0 6px}
+.lab-captcha label{margin:0!important}
+.lab-captcha span{font-size:11px;color:#888;margin-left:14px}
+.lab-modal-backdrop{position:fixed;inset:0;background:rgba(10,10,10,.45);display:grid;place-items:center;z-index:50}
+.lab-modal{background:#fff;border-radius:12px;padding:22px;max-width:420px;margin:16px}
+.lab-modal h2{margin:0 0 6px;font-size:18px}
+.lab-modal-actions{display:flex;gap:10px;margin-top:14px}
+.lab-modal button{background:#1d1d1b;color:#fff}
+.session-expired{border:1px solid #e3e3e3;border-radius:8px;padding:20px;margin-top:10px}
+.powered{margin-top:40px;font-size:12px;color:#999;text-align:center}
+.confirm{text-align:center;padding-top:80px}
+.confirm-mark{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;margin:0 auto 14px;font-size:28px}
+.ref{font-size:15px}
+.ref span{font-family:ui-monospace,monospace;font-weight:700}
+.steps{display:flex;gap:6px;list-style:none;padding:0;margin:0 0 22px}
+.steps li{flex:1;text-align:center;padding:8px;border-bottom:3px solid #e6e3f0;color:#888;font-size:13.5px;font-weight:600}
+.steps li.active{color:inherit}
+.board-head{display:flex;gap:16px;align-items:center;margin-bottom:22px}
+.board-head h1{margin:0;font-size:26px}
+.board-head p{margin:2px 0 0;color:#666}
+.logo-mark{width:52px;height:52px;border-radius:10px;display:grid;place-items:center;font-weight:800;font-size:22px;color:#fff}
+.board-sub{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#777}
+.board-list{list-style:none;padding:0;margin:0}
+.board-list li{padding:14px 0;border-top:1px solid #eee;display:flex;flex-direction:column}
+.board-list a{font-weight:600;font-size:16px;text-decoration:none}
+.board-list span{font-size:13.5px;color:#777}
+
+/* Greenhouse-style: white, plain labels, green action */
+.skin-greenhouse .apply-cta,.skin-greenhouse .app-form button:not(.ghost),.skin-greenhouse .session-expired button{background:#24735a;color:#fff}
+.skin-greenhouse .logo-mark{background:#24735a}
+.skin-greenhouse .board-list a,.skin-greenhouse .back{color:#24735a}
+.skin-greenhouse .confirm-mark{background:#e3f1ea;color:#24735a}
+
+/* Lever-style: dark header band, card sections, blue action */
+.skin-lever{background:#f5f6f8}
+.skin-lever .apply,.skin-lever .posting,.skin-lever .board{background:#fff;margin-top:24px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.skin-lever .apply-head{background:#232a35;color:#fff;margin:-36px -20px 26px;padding:28px 20px;border-radius:6px 6px 0 0}
+.skin-lever .apply-head .meta,.skin-lever .apply-head .back{color:#c8cfdb}
+.skin-lever .apply-cta,.skin-lever .app-form button:not(.ghost),.skin-lever .session-expired button{background:#3d6bd6;color:#fff;border-radius:3px;text-transform:uppercase;letter-spacing:.04em;font-size:13px}
+.skin-lever .logo-mark{background:#232a35}
+.skin-lever .confirm-mark{background:#e7ecf6;color:#3d6bd6}
+
+/* Ashby-style: centred card, step tabs, violet action */
+.skin-ashby{background:#f8f7fc}
+.skin-ashby .apply{background:#fff;border:1px solid #e9e6f2;border-radius:14px;margin-top:28px}
+.skin-ashby .steps li.active{border-color:#6b4fd6;color:#4f3584}
+.skin-ashby .apply-cta,.skin-ashby .app-form button:not(.ghost),.skin-ashby .session-expired button{background:#6b4fd6;color:#fff;border-radius:8px}
+.skin-ashby .logo-mark{background:#6b4fd6}
+.skin-ashby .confirm-mark{background:#efe9f8;color:#6b4fd6}
+
+@media (max-width:600px){
+  .lab-hero h1{font-size:34px}
+  .app-form .radios{flex-direction:column;gap:6px}
+  .lab-banner-note{display:none}
+}

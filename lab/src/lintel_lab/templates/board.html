@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Jobs at {{ c.name }}{% endblock %}
+{% block skin %}skin-{{ c.platform }}{% endblock %}
+{% block banner %}{{ c.platform|capitalize }}-style careers page{% endblock %}
+{% block body %}
+<main class="board">
+  <header class="board-head">
+    <div class="logo-mark" aria-hidden="true">{{ c.name[:1] }}</div>
+    <div>
+      <h1>{{ c.name }}</h1>
+      <p>{{ c.blurb }}</p>
+    </div>
+  </header>
+  <h2 class="board-sub">Open positions</h2>
+  <ul class="board-list">
+    {% for p in c.postings %}
+    <li>
+      <a href="/{{ c.platform }}/{{ c.slug }}/jobs/{{ p.id }}">{{ p.title }}</a>
+      <span>{{ p.department }} · {{ p.location }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</main>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ p.title }} · {{ c.name }}{% endblock %}
+{% block skin %}skin-{{ c.platform }}{% endblock %}
+{% block banner %}{{ c.platform|capitalize }}-style posting{% endblock %}
+{% block body %}
+<main class="posting">
+  <a class="back" href="/{{ c.platform }}/{{ c.slug }}">← All jobs at {{ c.name }}</a>
+  <h1>{{ p.title }}</h1>
+  <p class="meta">{{ c.name }} · {{ p.location }} · {{ p.employment_type }}{% if p.comp %} · {{ p.comp[2] }} {{ "{:,}".format(p.comp[0]) }}–{{ "{:,}".format(p.comp[1]) }}{% endif %}</p>
+  <div class="desc">{{ p.description_html|safe }}</div>
+  <a class="apply-cta" href="/{{ c.platform }}/{{ c.slug }}/jobs/{{ p.id }}/apply">Apply for this job</a>
+</main>
+{% endblock %}

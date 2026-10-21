@@ -1,0 +1,243 @@
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/newsreader";
+@import "@fontsource-variable/jetbrains-mono";
+@import "tailwindcss";
+
+/*
+ * Lintel design tokens.
+ * Warm paper neutrals and ink. One accent, gate blue, is reserved for the three human gates and
+ * the actions that pass them. Amber means uncertain. Green means verified. Red means blocked.
+ */
+:root {
+  --bg: #f7f6f2;
+  --surface: #ffffff;
+  --surface-2: #fbfaf7;
+  --muted: #f1efe8;
+  --border: #e6e3d9;
+  --border-strong: #d4d0c3;
+  --ink: #1c1b18;
+  --ink-2: #4c4941;
+  --ink-3: #6b675f;
+  --accent: #2d5bd0;
+  --accent-ink: #1d3f99;
+  --accent-soft: #eaf0fd;
+  --accent-line: #b3c7f3;
+  --ok: #1d7a4b;
+  --ok-soft: #e6f4ec;
+  --ok-line: #a9d8bd;
+  --warn: #8f5d00;
+  --warn-soft: #fdf4de;
+  --warn-line: #efcb73;
+  --bad: #b42318;
+  --bad-soft: #fdeceb;
+  --bad-line: #f3b4ae;
+  --shadow: 0 1px 2px rgba(28, 27, 24, 0.04), 0 4px 16px rgba(28, 27, 24, 0.05);
+  --shadow-lg: 0 10px 40px rgba(28, 27, 24, 0.12);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121210;
+    --surface: #1a1a17;
+    --surface-2: #1e1e1b;
+    --muted: #25241f;
+    --border: #2f2e29;
+    --border-strong: #3d3c35;
+    --ink: #f1efe8;
+    --ink-2: #c4c1b6;
+    --ink-3: #9a978c;
+    --accent: #7ea3f6;
+    --accent-ink: #a9c2fa;
+    --accent-soft: #1b2541;
+    --accent-line: #34508f;
+    --ok: #63d19b;
+    --ok-soft: #13281d;
+    --ok-line: #285c40;
+    --warn: #f2bd55;
+    --warn-soft: #2b2312;
+    --warn-line: #6b5422;
+    --bad: #ff8a7c;
+    --bad-soft: #2f1715;
+    --bad-line: #6b2e28;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.5);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #121210;
+  --surface: #1a1a17;
+  --surface-2: #1e1e1b;
+  --muted: #25241f;
+  --border: #2f2e29;
+  --border-strong: #3d3c35;
+  --ink: #f1efe8;
+  --ink-2: #c4c1b6;
+  --ink-3: #9a978c;
+  --accent: #7ea3f6;
+  --accent-ink: #a9c2fa;
+  --accent-soft: #1b2541;
+  --accent-line: #34508f;
+  --ok: #63d19b;
+  --ok-soft: #13281d;
+  --ok-line: #285c40;
+  --warn: #f2bd55;
+  --warn-soft: #2b2312;
+  --warn-line: #6b5422;
+  --bad: #ff8a7c;
+  --bad-soft: #2f1715;
+  --bad-line: #6b2e28;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-muted: var(--muted);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-line: var(--accent-line);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-ok-line: var(--ok-line);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-warn-line: var(--warn-line);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --color-bad-line: var(--bad-line);
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Newsreader Variable", ui-serif, Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --shadow-card: var(--shadow);
+  --shadow-pop: var(--shadow-lg);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 14.5px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  .font-display {
+    font-family: var(--font-serif);
+    font-optical-sizing: auto;
+    letter-spacing: -0.012em;
+  }
+  code,
+  kbd,
+  .font-mono {
+    font-family: var(--font-mono);
+    font-size: 0.86em;
+  }
+}
+
+@layer components {
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+  }
+  .hairline {
+    border-color: var(--border);
+  }
+  .field-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 9px;
+    padding: 8px 11px;
+    font: inherit;
+    color: var(--ink);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .field-input::placeholder {
+    color: var(--ink-3);
+  }
+  .field-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .field-input:disabled {
+    background: var(--muted);
+    color: var(--ink-3);
+  }
+  .eyebrow {
+    font-size: 11.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 600;
+  }
+  .gate-ring {
+    box-shadow: 0 0 0 1px var(--accent-line), 0 0 0 4px var(--accent-soft);
+  }
+  .shimmer {
+    background: linear-gradient(90deg, var(--muted) 0%, var(--surface-2) 50%, var(--muted) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-rise {
+  animation: rise 0.25s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

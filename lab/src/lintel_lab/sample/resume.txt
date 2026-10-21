@@ -1,0 +1,32 @@
+Riya Sharma
+Bengaluru, India | riya.sharma@example.com | +91 98765 43210 | linkedin.com/in/riya-sharma-dev | github.com/riyasharma
+
+SUMMARY
+Backend engineer who likes small, reliable services and honest evaluation.
+
+EXPERIENCE
+Backend Engineer Intern | Kite Labs | Jun 2024 - Dec 2024
+- Built a FastAPI service for warehouse inventory lookups used by about 400 daily users over 6 months
+- Cut p95 latency of the lookup API from 900 ms to 240 ms by adding PostgreSQL indexes and caching
+- Wrote pytest suites that raised test coverage of the inventory service from 41% to 78%
+- Containerized three services with Docker and set up GitHub Actions CI for them
+
+Software Engineering Intern | Papertrail Analytics | May 2023 - Jul 2023
+- Built internal dashboards in React and TypeScript for the sales team of 12 people
+- Automated a weekly CSV report with Python and pandas, saving the team about 3 hours a week
+
+PROJECTS
+Loglens | Python, Rust
+- Wrote a Rust CLI for parsing and summarizing application log files, used by 3 friends
+- Added a Python wrapper so the CLI can run inside Jupyter notebooks
+Evalkit | Python, LLMs
+- Built a small harness that scores language model answers against reference answers for 200 test questions
+- Compared two prompting strategies and wrote up the results in a blog post
+
+EDUCATION
+B.Tech in Computer Science, PES University, Bengaluru | 2020 - 2024
+
+SKILLS
+Languages: Python, TypeScript, SQL, Rust
+Frameworks and tools: FastAPI, React, PostgreSQL, Docker, pytest, GitHub Actions, pandas
+Familiar with: Kubernetes, Redis
