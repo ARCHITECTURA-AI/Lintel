@@ -48,9 +48,9 @@ export default function WatchlistPage() {
         )}
       </Card>
       {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-36" />)}</div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-36" />)}</div>
       ) : data?.length ? (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {data.map((c) => (
             <Card key={c.id} className="p-5">
               <div className="flex items-start gap-3">

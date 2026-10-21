@@ -62,7 +62,7 @@ export default function TrustReport() {
         ) : (
           <>
             {r.headline && (
-              <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {r.headline.map((h) => (
                   <Card key={h.label} className="p-5">
                     <div className="flex items-center justify-between text-[12.5px] text-ink-3">{h.label}<Mark ok={h.ok} /></div>
@@ -145,7 +145,7 @@ export default function TrustReport() {
                 </ul></Card>
               </Section>
             )}
-            <div className="mt-12 grid gap-6 md:grid-cols-2">
+            <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2">
               {r.will_not_do && (
                 <Card className="p-6"><h2 className="font-display text-[22px] text-ink">What Lintel will not do</h2>
                   <ul className="mt-3 space-y-2 text-[13.5px] text-ink-2">{r.will_not_do.map((x) => <li key={x} className="flex gap-2"><X className="mt-0.5 size-4 shrink-0 text-bad" />{x}</li>)}</ul></Card>

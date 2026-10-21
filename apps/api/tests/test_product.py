@@ -31,6 +31,13 @@ def test_requests_without_a_session_are_refused(stack):
     assert httpx.get(f"{stack.api_url}/applications").status_code == 401
 
 
+def test_every_error_has_the_same_shape(stack):
+    r = httpx.post(f"{stack.api_url}/auth/register", json={"email": "not-an-email"})
+    assert r.status_code == 422 and r.json()["error"]["code"] == "invalid_request"
+    r = httpx.post(f"{stack.api_url}/auth/login", json={"email": "nobody@lintel.dev", "password": "wrong-password-1"})
+    assert r.status_code == 401 and r.json()["error"]["message"]
+
+
 def test_one_person_never_sees_another_persons_data(stack, account):
     a = account("acme")
     aid = a.app_id(BACKEND)
@@ -185,7 +192,7 @@ def test_no_reply_window_drafts_the_follow_up(stack, account):
     a = account("acme")
     aid = a.app_id(BACKEND)
     a.to_drafted(aid)
-    a.post(f"/applications/{aid}/report-sent")
+    a.post(f"/applications/{aid}/report-sent", {})
     with owner_conn() as c:
         c.execute("UPDATE follow_ups SET due_at = now() - interval '1 minute' WHERE application_id = %s", (aid,))
     a.sweep()
@@ -193,7 +200,7 @@ def test_no_reply_window_drafts_the_follow_up(stack, account):
     fu = next(f for f in d["follow_ups"] if f["kind"] == "follow_up")
     assert fu["status"] == "ready" and fu["draft"]
     assert any(o["stage"] == "no_reply" for o in d["outcomes"])
-    assert any(n["kind"].startswith("follow_up") for n in a.get("/notifications"))
+    assert any(n["kind"].startswith("follow_up") for n in a.get("/notifications")["items"])
 
 
 def test_draft_only_packet_can_be_closed(stack, account):

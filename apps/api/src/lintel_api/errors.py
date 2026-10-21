@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 
 from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import DBAPIError, IntegrityError
 
@@ -67,6 +69,15 @@ def install(app: FastAPI) -> None:
             status_code=exc.status,
             content={"error": {"code": exc.code, "message": exc.message, **({"detail": exc.detail} if exc.detail else {})}},
         )
+
+    @app.exception_handler(RequestValidationError)
+    async def _invalid(_req: Request, exc: RequestValidationError) -> JSONResponse:
+        # Same shape as every other error, so the web app can show one message.
+        first = exc.errors()[0] if exc.errors() else {}
+        where = ".".join(str(x) for x in first.get("loc", ()) if x != "body")
+        message = f"{where}: {first.get('msg', 'invalid')}" if where else str(first.get("msg", "The request was invalid."))
+        return JSONResponse(status_code=422, content={"error": {"code": "invalid_request", "message": message,
+                                                                "detail": {"errors": jsonable_encoder(exc.errors())}}})
 
     @app.exception_handler(DBAPIError)
     async def _db_error(_req: Request, exc: DBAPIError) -> JSONResponse:

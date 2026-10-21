@@ -23,7 +23,8 @@ function Buckets({ title, rows }: { title: string; rows: ReviewBucket[] }) {
     <Card>
       <CardHeader title={title} />
       {rows.length ? (
-        <table className="w-full text-[13px]">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[460px] text-[13px]">
           <thead className="text-left text-[12px] text-ink-3"><tr><th className="px-5 py-1.5 font-medium">Group</th><th className="px-2 py-1.5 text-right font-medium">Sent</th><th className="px-2 py-1.5 text-right font-medium">Replies</th><th className="px-2 py-1.5 text-right font-medium">Interviews</th><th className="w-[34%] px-5 py-1.5 font-medium">Interview rate, 95% interval</th></tr></thead>
           <tbody className="divide-y divide-line">
             {rows.map((r) => (
@@ -37,6 +38,7 @@ function Buckets({ title, rows }: { title: string; rows: ReviewBucket[] }) {
             ))}
           </tbody>
         </table>
+        </div>
       ) : <p className="px-5 pb-5 text-[13px] text-ink-3">Nothing sent yet.</p>}
     </Card>
   );
@@ -101,7 +103,7 @@ export default function OutcomesPage() {
         <Card><EmptyState icon={<ChartNoAxesColumn className="size-5" />} title="No outcomes yet" action={<Link href="/queue" className="text-accent hover:underline">Open the fit queue</Link>}>Once applications go out, record replies and interviews on each one. This page turns them into your weekly review.</EmptyState></Card>
       ) : (
         <>
-          <div className="grid gap-4 md:grid-cols-[1.2fr_1fr]">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-[1.2fr_1fr]">
             <Card className="p-5">
               <div className="grid grid-cols-3 gap-4">
                 <Stat label="Sent" value={r.sent} />
@@ -121,7 +123,7 @@ export default function OutcomesPage() {
           </div>
           <div className="mt-6 space-y-6">
             <Buckets title="By résumé" rows={r.by_variant} />
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <Buckets title="By source" rows={r.by_source} />
               <Buckets title="By company size" rows={r.by_company_size} />
             </div>

@@ -24,7 +24,7 @@ function StageForm({ d, allowReported }: { d: Detail; allowReported?: boolean })
     onSuccess: () => setNote(""),
   });
   return (
-    <div className="grid gap-3 sm:grid-cols-[1fr_160px]">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_160px]">
       <Field label="What happened">
         <Select value={stage} onChange={(e) => setStage(e.target.value as OutcomeStage)}>
           {stages.map((s) => <option key={s} value={s}>{s === "user_reported_submitted" ? "I sent it myself" : STAGE_LABEL[s]}</option>)}
@@ -57,7 +57,7 @@ function Evidence({ d }: { d: Detail }) {
           <div className="mt-1 text-[11.5px] text-ink-3">{e.kind.replace("_", " ")} · {dateTime(e.created_at)}{e.page_hash ? ` · page ${e.page_hash.slice(0, 10)}` : ""}</div>
         </div>
       ))}
-      <div className="grid gap-2 sm:grid-cols-[1fr_180px]">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_180px]">
         <Textarea className="min-h-[60px]" placeholder="Paste the confirmation message or email" value={text} onChange={(e) => setText(e.target.value)} />
         <div className="space-y-2">
           <Input placeholder="Reference number" value={ref} onChange={(e) => setRef(e.target.value)} />
@@ -189,7 +189,7 @@ export function OutcomePanel({ d }: { d: Detail }) {
         {s !== "submission_uncertain" && <StageForm d={d} />}
       </Card>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card className="p-6">
           <SectionTitle hint="Short, grounded, and sent by you.">Follow-up</SectionTitle>
           <FollowUps d={d} />

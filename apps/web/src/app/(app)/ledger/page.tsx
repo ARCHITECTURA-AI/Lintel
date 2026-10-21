@@ -38,7 +38,7 @@ function FactForm({ fact, onDone }: { fact?: FactRow; onDone: () => void }) {
   });
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Field label="Kind"><Select value={kind} disabled={Boolean(fact)} onChange={(e) => setKind(e.target.value as FactKind)}>{KINDS.map((k) => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}</Select></Field>
         <Field label="Where it happened"><Select value={scopes.includes(scope) ? scope : scopes[0]} onChange={(e) => setScope(e.target.value as ClaimScope)}>{scopes.map((s) => <option key={s} value={s}>{SCOPE_LABEL[s]}</option>)}</Select></Field>
       </div>

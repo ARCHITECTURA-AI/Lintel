@@ -79,7 +79,7 @@ export default function TodayPage() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-14 w-80" />
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-32" />)}
         </div>
         <Skeleton className="h-80" />
@@ -105,7 +105,7 @@ export default function TodayPage() {
         actions={<ButtonLink href="/queue" variant="primary" icon={<Sparkles className="size-4" />}>Open the fit queue</ButtonLink>}
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card className="p-5">
           <Stat label={`Budget, week of ${weekLabel}`} value={<>{b.used}<span className="text-ink-3"> / {b.budget}</span></>}
             sub={b.waiting_next_week ? `${b.waiting_next_week} waiting for next week` : `${b.remaining} left this week`} />
@@ -123,7 +123,7 @@ export default function TodayPage() {
         </Card>
       </div>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_360px]">
+      <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[1fr_360px]">
         <div className="space-y-6">
           <Card>
             <CardHeader title="Needs you" description="Ordered by what blocks progress first." />

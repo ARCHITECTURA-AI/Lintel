@@ -121,7 +121,7 @@ function ModeChoice({ d, mode, setMode }: { d: Detail; mode: SupportMode; setMod
   if (d.max_mode !== "approved_submission") return null;
   const opts: SupportMode[] = ["assisted_fill", "approved_submission"];
   return (
-    <div className="grid gap-2 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
       {opts.map((m) => (
         <button key={m} type="button" onClick={() => setMode(m)}
           className={cx("rounded-xl border p-3.5 text-left transition", mode === m ? "border-accent bg-accent-soft" : "border-line bg-surface hover:border-line-strong")}>
@@ -251,7 +251,7 @@ export function ApprovedPanel({ d }: { d: Detail }) {
       <SectionTitle gate="Step 7 · Send" hint={lintelClicks ? "Lintel clicks once, after the Guard re-reads every field against your approval." : "Switch to the Lintel browser window and click the site's own Submit. The Guard checks every field, checkbox and file against your approval first."}>
         {lintelClicks ? "Sending under your approval" : "Your click is next"}
       </SectionTitle>
-      <div className="grid gap-5 sm:grid-cols-[1fr_auto]">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-[1fr_auto]">
         <ol className="space-y-2.5">
           {steps.map((s, i) => (
             <li key={i} className="flex items-center gap-3 text-[14px]">
@@ -317,7 +317,7 @@ export function AuditTrio({ d }: { d: Detail }) {
     { label: "Outcome", ok: Boolean(adapterOutcome), detail: adapterOutcome ? "confirmation observed" : "not observed" },
   ];
   return (
-    <div className="grid gap-2 sm:grid-cols-3">
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
       {items.map((x) => (
         <div key={x.label} className={cx("rounded-xl border px-3.5 py-2.5", x.ok ? "border-ok-line bg-ok-soft/60" : "border-line bg-surface-2")}>
           <div className="flex items-center gap-1.5 text-[13px] font-semibold text-ink">

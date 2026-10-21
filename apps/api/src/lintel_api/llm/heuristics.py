@@ -29,11 +29,25 @@ OTHER_HEADINGS = re.compile(
 BULLET = re.compile(r"^\s*([-•*·▪●◦]|\d+[.)])\s+")
 
 
+# Inline styles and attributes that make text invisible to a person reading the page.
+HIDDEN_STYLE = (r"(?:\bhidden\b|aria-hidden\s*=\s*[\"']?true|display\s*:\s*none|visibility\s*:\s*hidden|"
+                r"font-size\s*:\s*[01](?:\.\d+)?px|opacity\s*:\s*0(?:\.0+)?\s*[;\"']|"
+                r"color\s*:\s*(?:#fff\b|#ffffff\b|white\b|transparent\b))")
+
+# Lines addressed to an AI rather than to a candidate are prompt injection, not requirements.
+ADDRESSED_TO_AI = re.compile(
+    r"\b(ignore (all )?(previous|prior|above) instructions|disregard (the|all|any) |system\s*:|you are (an? )?(ai|assistant|"
+    r"language model|llm)|as an ai\b|language model,? (you|please))", re.I)
+
+
 def html_to_text(html: str) -> str:
     import html as htmllib
 
     text = htmllib.unescape(html or "")
     text = htmllib.unescape(text)  # Greenhouse double-escapes content
+    # Text a reader can't see isn't part of the posting: drop hidden and invisible elements.
+    text = re.sub(r"(?is)<(script|style|template)\b.*?</\1\s*>", "", text)
+    text = re.sub(r"(?is)<(\w+)\b[^>]*" + HIDDEN_STYLE + r"[^>]*>.*?</\1\s*>", "", text)
     text = re.sub(r"(?i)<\s*br\s*/?>", "\n", text)
     text = re.sub(r"(?i)<\s*li[^>]*>", "\n- ", text)
     text = re.sub(r"(?i)</\s*(p|div|h[1-6]|ul|ol|li|section)\s*>", "\n", text)
@@ -113,12 +127,13 @@ def requirement_lines(description: str) -> list[tuple[str, str]]:
         if is_heading and OTHER_HEADINGS.match(bare):
             mode = None
             continue
-        if mode and 12 <= len(bare) <= 240 and not NOT_A_REQUIREMENT.search(bare):
+        if mode and 12 <= len(bare) <= 240 and not NOT_A_REQUIREMENT.search(bare) and not ADDRESSED_TO_AI.search(bare):
             out.append((bare, mode))
     if not out:
         for sentence in re.split(r"(?<=[.!?])\s+|\n", text):
             s = BULLET.sub("", sentence).strip()
-            if re.search(r"\b(experience|years|proficien|familiar|knowledge of|degree|ability to)\b", s, re.I) and 15 <= len(s) <= 240:
+            if (re.search(r"\b(experience|years|proficien|familiar|knowledge of|degree|ability to)\b", s, re.I)
+                    and 15 <= len(s) <= 240 and not ADDRESSED_TO_AI.search(s)):
                 out.append((s, "nice" if re.search(r"\b(plus|bonus|nice|preferred)\b", s, re.I) else "must"))
     seen: set[str] = set()
     unique = []

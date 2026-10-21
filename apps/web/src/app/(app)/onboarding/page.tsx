@@ -95,7 +95,7 @@ function FiltersStep({ f, setF, budget, setBudget }: { f: HardFilters; setF: (f:
       </div>
       <div>
         <div className="mb-2 text-[13px] font-medium text-ink">Do you need visa sponsorship to work in…</div>
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {COUNTRIES.map(([code, name]) => (
             <div key={code} className="flex items-center justify-between rounded-xl border border-line bg-surface px-3.5 py-2.5 text-[13.5px]">
               <span className="text-ink">{name}</span>
@@ -110,7 +110,7 @@ function FiltersStep({ f, setF, budget, setBudget }: { f: HardFilters; setF: (f:
         </div>
       </div>
       <Field label="Exclude seniority"><TagInput value={f.exclude_seniority ?? []} onChange={(v) => setF({ ...f, exclude_seniority: v })} suggestions={["staff", "principal", "director", "intern"]} /></Field>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field label="Minimum pay" hint="per year">
           <Input type="number" min={0} value={f.min_salary?.amount ?? ""} onChange={(e) => setF({ ...f, min_salary: { ...f.min_salary, amount: e.target.value ? Number(e.target.value) : undefined } })} placeholder="e.g. 60000" />
         </Field>
