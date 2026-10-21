@@ -31,24 +31,22 @@ function DraftEditor({ d, draft, onClose }: { d: Detail; draft: DraftRow; onClos
   const id = d.application.id;
   const [text, setText] = useState<string>(typeof draft.value === "string" ? draft.value : draft.sentences.map((s) => s.text).join(" "));
   const debounced = useDebounced(text, 450);
-  const [preview, setPreview] = useState<SentenceRow[] | null>(null);
-  const [checking, setChecking] = useState(false);
+  // The last checked text and its result; the preview and the spinner derive from it.
+  const [result, setResult] = useState<{ text: string; rows: SentenceRow[] | null } | null>(null);
   useEffect(() => {
+    if (!debounced.trim()) return;
     let cancelled = false;
-    if (!debounced.trim()) {
-      setPreview([]);
-      return;
-    }
-    setChecking(true);
     api
       .post<SentenceRow[]>(`/applications/${id}/check`, { text: debounced })
-      .then((r) => !cancelled && setPreview(r))
-      .catch(() => null)
-      .finally(() => !cancelled && setChecking(false));
+      .then((r) => !cancelled && setResult({ text: debounced, rows: r }))
+      .catch(() => !cancelled && setResult({ text: debounced, rows: null }));
     return () => {
       cancelled = true;
     };
   }, [debounced, id]);
+  const empty = !debounced.trim();
+  const preview = empty ? [] : result?.text === debounced ? result.rows : (result?.rows ?? null);
+  const checking = !empty && result?.text !== debounced;
   const save = useAction(() => api.put<DraftRow>(`/applications/${id}/drafts/${draft.field_key}`, { text }), {
     invalidate: [["application", id]],
     success: (r) => ((r as DraftRow).status === "ready" ? "Saved. Every sentence traces to a fact." : "Saved, but blocked by the claim check."),

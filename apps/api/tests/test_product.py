@@ -134,12 +134,14 @@ def test_a_changed_payload_needs_a_new_approval(stack, account):
     old_hash = a.detail(aid)["application"]["payload_hash"]
     a.approve(aid, "assisted_fill")
     assert a.state(aid) == "approved"
-    a.post(f"/applications/{aid}/revoke")
-    assert a.state(aid) == "in_review"
+    # Editing an answer after approval voids the approval and goes back to review.
     d = a.detail(aid)
     dr = next(x for x in d["drafts"] if x["decision"] == "draft_needed")
     a.c.put(f"/applications/{aid}/drafts/{dr['field_key']}", json={"text": dr["sentences"][0]["text"]}).raise_for_status()
-    new_hash = a.detail(aid)["application"]["payload_hash"]
+    d = a.detail(aid)
+    assert d["application"]["state"] == "in_review" and d["live_approval"] is None
+    assert d["approvals"][-1]["revoked_reason"] == "the payload changed after approval"
+    new_hash = d["application"]["payload_hash"]
     assert new_hash != old_hash
     r = a.post(f"/applications/{aid}/approve", {"payload_hash": old_hash}, ok=False)
     assert r.status_code == 409
@@ -177,6 +179,21 @@ def test_outcome_loop_follow_up_export_and_erasure(stack, account):
     with owner_conn() as c:
         assert c.execute("SELECT count(*) FROM users WHERE email = %s", (a.email,)).fetchone()[0] == 0
         assert c.execute("SELECT count(*) FROM applications WHERE id = %s", (aid,)).fetchone()[0] == 0
+
+
+def test_no_reply_window_drafts_the_follow_up(stack, account):
+    a = account("acme")
+    aid = a.app_id(BACKEND)
+    a.to_drafted(aid)
+    a.post(f"/applications/{aid}/report-sent")
+    with owner_conn() as c:
+        c.execute("UPDATE follow_ups SET due_at = now() - interval '1 minute' WHERE application_id = %s", (aid,))
+    a.sweep()
+    d = a.detail(aid)
+    fu = next(f for f in d["follow_ups"] if f["kind"] == "follow_up")
+    assert fu["status"] == "ready" and fu["draft"]
+    assert any(o["stage"] == "no_reply" for o in d["outcomes"])
+    assert any(n["kind"].startswith("follow_up") for n in a.get("/notifications"))
 
 
 def test_draft_only_packet_can_be_closed(stack, account):

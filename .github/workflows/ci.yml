@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: Python · lint, unit, integration
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16.6
+        env:
+          POSTGRES_USER: lintel
+          POSTGRES_DB: lintel
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ["5433:5432"]
+        options: >-
+          --health-cmd "pg_isready -U lintel" --health-interval 2s --health-retries 30
+    env:
+      LINTEL_TEST_DATABASE_URL: postgresql+psycopg://lintel@127.0.0.1:5433/lintel_test
+      LINTEL_LLM_PROVIDER: offline
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Lint
+        run: uv run ruff check apps packages lab evals conftest.py
+      - name: Generated TypeScript types are current
+        run: uv run python -m lintel_schemas.gen_ts --check
+      - name: Test database
+        run: psql -h 127.0.0.1 -p 5433 -U lintel -d lintel -c "CREATE DATABASE lintel_test"
+      - name: Browser for the runner
+        run: uv run playwright install --with-deps chromium
+      - name: Unit and integration tests
+        run: uv run pytest -q -m "not e2e"
+      - name: End-to-end tests (runner against Lintel Lab)
+        run: uv run pytest -q -m e2e
+
+  trust-report:
+    name: Trust Report
+    runs-on: ubuntu-24.04
+    needs: python
+    services:
+      postgres:
+        image: postgres:16.6
+        env:
+          POSTGRES_USER: lintel
+          POSTGRES_DB: lintel
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ["5433:5432"]
+        options: >-
+          --health-cmd "pg_isready -U lintel" --health-interval 2s --health-retries 30
+    env:
+      LINTEL_TEST_DATABASE_URL: postgresql+psycopg://lintel@127.0.0.1:5433/lintel_test
+      LINTEL_LLM_PROVIDER: offline
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+          enable-cache: true
+      - run: uv sync --frozen
+      - run: psql -h 127.0.0.1 -p 5433 -U lintel -d lintel -c "CREATE DATABASE lintel_test"
+      - run: uv run playwright install --with-deps chromium
+      - name: Run the evaluations
+        run: uv run lintel-evals
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trust-report
+          path: evals/out/report.json
+
+  web:
+    name: Web · lint, types, build
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm build

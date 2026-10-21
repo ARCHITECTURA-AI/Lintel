@@ -2,6 +2,7 @@
 
 import * as Popover from "@radix-ui/react-popover";
 import { AlertOctagon, CalendarClock, ChevronDown, CircleSlash, MessageSquareQuote, Rocket } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ApiError, api, errorMessage } from "@/lib/api";
@@ -87,6 +88,7 @@ export function FitBriefView({ d }: { d: Detail }) {
 
 export function FitPanel({ d }: { d: Detail }) {
   const id = d.application.id;
+  const router = useRouter();
   const [budgetFull, setBudgetFull] = useState(false);
   const [reason, setReason] = useState("");
   const go = useAction(() => api.post(`/applications/${id}/decide`, { go: true }), {
@@ -158,7 +160,7 @@ export function FitPanel({ d }: { d: Detail }) {
       <Modal open={budgetFull} onOpenChange={setBudgetFull} title="This week's budget is used" description={`You set ${b.budget} applications a week. The surplus waits, so effort goes to the roles most likely to convert.`}>
         <div className="flex flex-wrap gap-2">
           <Button variant="gate" loading={nextWeek.isPending} onClick={() => nextWeek.mutate(undefined, { onSuccess: () => setBudgetFull(false) })}>Queue for next week</Button>
-          <Button variant="secondary" onClick={() => (window.location.href = "/settings#budget")}>Raise my budget</Button>
+          <Button variant="secondary" onClick={() => router.push("/settings#budget")}>Raise my budget</Button>
         </div>
       </Modal>
     </Card>

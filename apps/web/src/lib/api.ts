@@ -35,6 +35,8 @@ async function request<T>(method: string, path: string, body?: Body): Promise<T>
     };
     if (res.status === 401 && typeof window !== "undefined" && !path.startsWith("/auth/")) {
       const next = encodeURIComponent(window.location.pathname + window.location.search);
+      // Outside React: a full navigation to sign-in is what we want here.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = `/login?next=${next}`;
     }
     throw new ApiError(res.status, err.code ?? "error", err.message ?? `Request failed (${res.status})`, err.detail);

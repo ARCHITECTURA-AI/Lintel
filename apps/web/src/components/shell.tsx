@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { type ReactNode, useState, useSyncExternalStore } from "react";
 import { api } from "@/lib/api";
 import { initials } from "@/lib/format";
 import { useDashboard, useMe, useNotifications } from "@/lib/queries";
@@ -132,12 +132,27 @@ function RunnerStatus() {
   );
 }
 
+const DARK_QUERY = "(prefers-color-scheme: dark)";
+
+function subscribeTheme(onChange: () => void) {
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  const mq = window.matchMedia(DARK_QUERY);
+  mq.addEventListener("change", onChange);
+  return () => {
+    observer.disconnect();
+    mq.removeEventListener("change", onChange);
+  };
+}
+
+function currentTheme(): "light" | "dark" {
+  const t = document.documentElement.dataset.theme;
+  if (t === "light" || t === "dark") return t;
+  return window.matchMedia(DARK_QUERY).matches ? "dark" : "light";
+}
+
 function ThemeToggle() {
-  const [theme, setTheme] = useState<"light" | "dark" | null>(null);
-  useEffect(() => {
-    const t = document.documentElement.dataset.theme as "light" | "dark" | undefined;
-    setTheme(t ?? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
-  }, []);
+  const theme = useSyncExternalStore(subscribeTheme, currentTheme, () => null);
   const next = theme === "dark" ? "light" : "dark";
   return (
     <button
@@ -149,7 +164,6 @@ function ThemeToggle() {
         try {
           localStorage.setItem("lintel-theme", next);
         } catch {}
-        setTheme(next);
       }}
     >
       {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
@@ -210,9 +224,10 @@ function Bellink() {
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  useEffect(() => setOpen(false), [pathname]);
+  const [openOn, setOpenOn] = useState<string | null>(null);
+  const open = openOn === pathname;
+  const setOpen = (v: boolean) => setOpenOn(v ? pathname : null);
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[256px_1fr]">
       <aside className="sticky top-0 hidden h-dvh flex-col gap-6 border-r border-line bg-surface-2/60 px-3 py-5 lg:flex">

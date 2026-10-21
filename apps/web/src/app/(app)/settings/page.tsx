@@ -2,7 +2,7 @@
 
 import { Download, TriangleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Modal } from "@/components/app/shared";
 import { TagInput } from "@/components/tags";
 import { Button, Callout, Card, CardHeader, Field, Input, PageHeader, Toggle } from "@/components/ui";
@@ -16,7 +16,11 @@ export default function SettingsPage() {
   const [s, setS] = useState<Partial<Me>>({});
   const [confirm, setConfirm] = useState(false);
   const [typed, setTyped] = useState("");
-  useEffect(() => { if (me) setS(me); }, [me]);
+  const [seededFrom, setSeededFrom] = useState<Me | undefined>(undefined);
+  if (me && me !== seededFrom) {
+    setSeededFrom(me);
+    setS(me);
+  }
   const save = useAction(() => api.patch("/me", { full_name: s.full_name, timezone: s.timezone, weekly_budget: s.weekly_budget, no_reply_days: s.no_reply_days, targets: s.targets, hard_filters: s.hard_filters, notification_prefs: s.notification_prefs }), { invalidate: [["me"]], success: "Settings saved." });
   const del = useAction(() => api.post("/me/delete", { confirm: typed }), { onSuccess: () => router.replace("/signup") });
   if (!me) return null;

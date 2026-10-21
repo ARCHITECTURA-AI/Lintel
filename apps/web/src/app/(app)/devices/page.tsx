@@ -44,7 +44,7 @@ function Devices() {
           <div className="flex items-center gap-2 text-[14px] font-semibold text-ink"><ShieldCheck className="size-4 text-accent" /> What stays on your machine</div>
           <ul className="mt-3 space-y-2.5 text-[13px] text-ink-2">
             <li><strong className="text-ink">Logins and cookies.</strong> The runner uses its own browser profile. The cloud has no logins to protect, leak or delete.</li>
-            <li><strong className="text-ink">CAPTCHA and sign-in checks.</strong> They're just a paused window you complete yourself. Lintel never solves or evades them.</li>
+            <li><strong className="text-ink">CAPTCHA and sign-in checks.</strong> They&apos;re just a paused window you complete yourself. Lintel never solves or evades them.</li>
             <li><strong className="text-ink">Traces.</strong> Step logs send only a hash and a length of each value. Browser traces stay local unless you share one.</li>
             <li><strong className="text-ink">Where it can go.</strong> Only hosts in the destination registry, and it uploads only documents on the approved list, matched by hash.</li>
           </ul>

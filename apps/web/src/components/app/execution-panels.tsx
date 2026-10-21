@@ -220,12 +220,12 @@ export function ReviewPanel({ d }: { d: Detail }) {
 }
 
 function Countdown({ until }: { until: string }) {
-  const [, tick] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    const t = setInterval(() => tick((x) => x + 1), 1000);
+    const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
-  const ms = Math.max(0, new Date(until).getTime() - Date.now());
+  const ms = Math.max(0, new Date(until).getTime() - now);
   const m = Math.floor(ms / 60000);
   const s = Math.floor((ms % 60000) / 1000);
   return <span className="font-display text-[34px] tabular-nums leading-none text-ink">{m}:{String(s).padStart(2, "0")}</span>;

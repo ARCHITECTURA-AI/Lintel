@@ -1,0 +1,20 @@
+# Postgres for local development and tests, on the same port as scripts/dev-db.sh.
+#   docker compose up -d
+services:
+  postgres:
+    image: postgres:16.6
+    environment:
+      POSTGRES_USER: lintel
+      POSTGRES_DB: lintel
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - pg:/var/lib/postgresql/data
+      - ./scripts/pg-init.sql:/docker-entrypoint-initdb.d/10-lintel.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lintel"]
+      interval: 2s
+      retries: 30
+volumes:
+  pg:

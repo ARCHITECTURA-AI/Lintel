@@ -2,7 +2,7 @@
 
 import { ArrowLeft, ArrowRight, Check, FileUp, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { CandidateReview } from "@/components/candidates";
 import { Wordmark } from "@/components/logo";
@@ -182,13 +182,13 @@ export default function OnboardingPage() {
   const [filters, setFilters] = useState<HardFilters>({});
   const [budget, setBudget] = useState(5);
   const [saving, setSaving] = useState(false);
-  useEffect(() => {
-    if (me) {
-      if (me.targets && Object.keys(me.targets).length) setTargets(me.targets);
-      if (me.hard_filters && Object.keys(me.hard_filters).length) setFilters(me.hard_filters);
-      setBudget(me.weekly_budget);
-    }
-  }, [me]);
+  const [seededFrom, setSeededFrom] = useState<typeof me>(undefined);
+  if (me && me !== seededFrom) {
+    setSeededFrom(me);
+    if (me.targets && Object.keys(me.targets).length) setTargets(me.targets);
+    if (me.hard_filters && Object.keys(me.hard_filters).length) setFilters(me.hard_filters);
+    setBudget(me.weekly_budget);
+  }
   const save = async (extra: Record<string, unknown> = {}) => {
     setSaving(true);
     try {
