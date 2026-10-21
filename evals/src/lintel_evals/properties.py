@@ -212,7 +212,7 @@ def prop_no_cross_user_reads(people: int, state: str) -> None:
                 others = [m["app"] for m in made if m is not me]
                 changed = c.execute("UPDATE applications SET fit_score = 1 WHERE id = ANY(%s)", (others,)).rowcount
                 assert changed == 0
-                gone = c.execute("DELETE FROM profile_facts WHERE user_id <> %s", (me["user"],)).rowcount
+                gone = c.execute("DELETE FROM approval_records WHERE user_id <> %s", (me["user"],)).rowcount
                 assert gone == 0
             victim = next(m for m in made if m is not me)
             try:
