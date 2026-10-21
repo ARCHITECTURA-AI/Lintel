@@ -162,9 +162,12 @@ def main() -> None:
     print("claim check…", flush=True)
     report["claim_check"] = claim_check()
     if not args.quick:
+        from .harness import reset_database
         from .properties import run_properties
 
         print("property tests…", flush=True)
+        # The properties run against the real schema, so start from a freshly migrated database.
+        reset_database()
         report["property_tests"] = run_properties()
         if not args.no_e2e:
             from .harness import running_stack
