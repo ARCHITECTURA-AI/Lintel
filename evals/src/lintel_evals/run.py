@@ -105,6 +105,29 @@ def claim_check() -> dict[str, Any]:
     return out
 
 
+def beta_exit(r: dict[str, Any]) -> list[dict[str, Any]]:
+    """The PRD's proposed beta exit criteria, measured on Lintel Lab."""
+
+    b = r.get("beta")
+    if not b:
+        return []
+    prep = b["prepared"] / max(1, b["attempted"])
+    acc = b["fields_ok"] / max(1, b["fields_checked"])
+    rls = next((p for p in r.get("property_tests", []) if p["name"].startswith("No cross-user")), None)
+    resent = sum(1 for c in r.get("crash_tests", []) if c.get("resent"))
+    return [
+        {"criterion": "Preparation completion on Lintel Lab flows", "target": "at least 90%",
+         "value": f"{prep:.0%} ({b['prepared']} of {b['attempted']})", "passed": prep >= 0.9},
+        {"criterion": "Field accuracy on Lintel Lab flows", "target": "at least 95%",
+         "value": f"{acc:.1%} ({b['fields_ok']} of {b['fields_checked']} read back)", "passed": acc >= 0.95},
+        {"criterion": "Unapproved sends", "target": "0", "value": str(b["unapproved_intents"]),
+         "passed": b["unapproved_intents"] == 0},
+        {"criterion": "Cross-user exposure", "target": "0",
+         "value": "0" if rls and rls["passed"] else "see property tests", "passed": bool(rls and rls["passed"])},
+        {"criterion": "Automatic retries of uncertain sends", "target": "0", "value": str(resent), "passed": resent == 0},
+    ]
+
+
 def headline(r: dict[str, Any]) -> list[dict[str, Any]]:
     h: list[dict[str, Any]] = []
     cc = r["claim_check"]
@@ -155,6 +178,8 @@ def main() -> None:
             report["guard"] = {"injected_mismatches": guard.get("injected_mismatches", 1),
                                "blocked": guard.get("blocked", 0), "detail": guard.get("detail", "")}
             report["e2e_seconds"] = e2e["seconds"]
+            report["beta"] = e2e["beta"]
+            report["beta_exit"] = beta_exit(report)
     report["headline"] = headline(report)
     report["will_not_do"] = WILL_NOT_DO
     report["limits"] = LIMITS
@@ -168,6 +193,7 @@ def main() -> None:
         shutil.copy(OUT, PUBLISHED)
         print(f"published {PUBLISHED}")
     failed = [h["label"] for h in report["headline"] if h.get("ok") is False]
+    failed += [b["criterion"] for b in report.get("beta_exit", []) if not b["passed"]]
     if failed:
         print("failing: " + "; ".join(failed), file=sys.stderr)
         sys.exit(1)

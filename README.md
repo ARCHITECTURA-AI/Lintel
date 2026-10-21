@@ -72,6 +72,7 @@ web app renders it at `/trust`. Failing rows stay in the report. See [docs/trust
 
 ## Read more
 
+- [docs/Lintel_Product_Requirements_v2.pdf](docs/Lintel_Product_Requirements_v2.pdf): the product requirements this build follows
 - [docs/architecture.md](docs/architecture.md): how the pieces fit, and where each promise is enforced
 - [docs/decisions.md](docs/decisions.md): choices the PRD left open, and why
 - [docs/trust-report.md](docs/trust-report.md): what the Trust Report measures and how

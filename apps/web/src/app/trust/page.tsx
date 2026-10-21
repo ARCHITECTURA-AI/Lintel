@@ -22,6 +22,7 @@ type Report = {
   injection?: { case: string; target: string; held: boolean; detail: string }[];
   property_tests?: { name: string; examples: number; passed: boolean }[];
   guard?: { injected_mismatches: number; blocked: number };
+  beta_exit?: { criterion: string; target: string; value: string; passed: boolean }[];
   limits?: string[];
   will_not_do?: string[];
   note?: string;
@@ -72,17 +73,31 @@ export default function TrustReport() {
                 ))}
               </div>
             )}
+            {r.beta_exit && r.beta_exit.length > 0 && (
+              <Section title="Beta exit criteria" sub="Proposed in the PRD and measured on Lintel Lab. Live-site targets come from the pilot, not from fixtures.">
+                <Card className="overflow-hidden">
+                  <div className="overflow-x-auto"><table className="w-full min-w-[520px] text-[13.5px]">
+                    <thead className="bg-muted/60 text-left text-[12px] text-ink-3"><tr><th className="px-5 py-2.5 font-medium">Criterion</th><th className="px-3 py-2.5 font-medium">Target</th><th className="px-3 py-2.5 font-medium">Measured</th><th className="px-5 py-2.5"><span className="sr-only">Result</span></th></tr></thead>
+                    <tbody className="divide-y divide-line">
+                      {r.beta_exit.map((b) => (
+                        <tr key={b.criterion}><td className="px-5 py-2.5 text-ink">{b.criterion}</td><td className="px-3 py-2.5 text-ink-2">{b.target}</td><td className="px-3 py-2.5 tabular-nums text-ink">{b.value}</td><td className="px-5 py-2.5"><Mark ok={b.passed} /></td></tr>
+                      ))}
+                    </tbody>
+                  </table></div>
+                </Card>
+              </Section>
+            )}
             {r.claim_check && (
               <Section title="Claim check" sub="Synthetic profiles and jobs built to tempt fabrication: project versus employment, overlapping dates, “familiar with” versus “expert”, invented numbers and employers. We score leakage of unsupported claims and report the verifier's recall separately.">
                 <Card className="overflow-hidden">
-                  <table className="w-full text-[13.5px]">
+                  <div className="overflow-x-auto"><table className="w-full min-w-[520px] text-[13.5px]">
                     <thead className="bg-muted/60 text-left text-[12px] text-ink-3"><tr><th className="px-5 py-2.5 font-medium">Temptation</th><th className="px-3 py-2.5 text-right font-medium">Cases</th><th className="px-3 py-2.5 text-right font-medium">Caught</th><th className="px-5 py-2.5 text-right font-medium">Leaked</th></tr></thead>
                     <tbody className="divide-y divide-line">
                       {r.claim_check.by_category.map((c) => (
                         <tr key={c.category}><td className="px-5 py-2.5 text-ink">{c.category}</td><td className="px-3 py-2.5 text-right tabular-nums">{c.cases}</td><td className="px-3 py-2.5 text-right tabular-nums">{c.caught}</td><td className={cx("px-5 py-2.5 text-right tabular-nums", c.leaked ? "font-semibold text-bad" : "text-ink-3")}>{c.leaked}</td></tr>
                       ))}
                     </tbody>
-                  </table>
+                  </table></div>
                 </Card>
                 <p className="mt-3 text-[13px] text-ink-2">
                   {r.claim_check.cases} cases · {r.claim_check.unsupported_leaked} unsupported claims leaked ({(r.claim_check.leakage_rate * 100).toFixed(1)}%) · {r.claim_check.false_blocks} true sentences blocked
@@ -112,14 +127,14 @@ export default function TrustReport() {
             {r.crash_tests && (
               <Section title="Crash tests" sub="The runner is killed at each step of the submit sequence. Lintel guarantees it never sends twice on its own authority; when it can't know, it says so.">
                 <Card className="overflow-hidden">
-                  <table className="w-full text-[13.5px]">
+                  <div className="overflow-x-auto"><table className="w-full min-w-[520px] text-[13.5px]">
                     <thead className="bg-muted/60 text-left text-[12px] text-ink-3"><tr><th className="px-5 py-2.5 font-medium">Killed</th><th className="px-3 py-2.5 font-medium">Final state</th><th className="px-3 py-2.5 text-right font-medium">Sends observed</th><th className="px-5 py-2.5 font-medium">Result</th></tr></thead>
                     <tbody className="divide-y divide-line">
                       {r.crash_tests.map((c) => (
                         <tr key={c.point}><td className="px-5 py-2.5"><div className="text-ink">{c.point}</div><div className="text-[12px] text-ink-3">{c.description}</div></td><td className="px-3 py-2.5"><code>{c.final_state}</code></td><td className="px-3 py-2.5 text-right tabular-nums">{c.sends}</td><td className="px-5 py-2.5"><span className="flex items-center gap-2"><Mark ok={c.passed} />{c.resent ? "resent" : "never resent"}</span></td></tr>
                       ))}
                     </tbody>
-                  </table>
+                  </table></div>
                 </Card>
               </Section>
             )}

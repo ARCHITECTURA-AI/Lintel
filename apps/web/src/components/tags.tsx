@@ -3,7 +3,7 @@
 import { X } from "lucide-react";
 import { useState } from "react";
 
-export function TagInput({ value, onChange, placeholder, suggestions }: { value: string[]; onChange: (v: string[]) => void; placeholder?: string; suggestions?: string[] }) {
+export function TagInput({ id, value, onChange, placeholder, suggestions }: { id?: string; value: string[]; onChange: (v: string[]) => void; placeholder?: string; suggestions?: string[] }) {
   const [draft, setDraft] = useState("");
   const add = (t: string) => {
     const v = t.trim();
@@ -20,6 +20,7 @@ export function TagInput({ value, onChange, placeholder, suggestions }: { value:
           </span>
         ))}
         <input
+          id={id}
           className="min-w-24 flex-1 bg-transparent text-[13.5px] outline-none placeholder:text-ink-3"
           value={draft}
           placeholder={value.length ? "" : placeholder}

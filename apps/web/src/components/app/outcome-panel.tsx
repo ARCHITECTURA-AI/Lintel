@@ -1,8 +1,8 @@
 "use client";
 
-import { AlertTriangle, CircleCheck, MailQuestion, Send, UserPlus } from "lucide-react";
+import { AlertTriangle, CircleCheck, FileText, ImagePlus, MailQuestion, Send, Trash2, UserPlus } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { STAGE_LABEL, USER_STAGES, dateTime, day } from "@/lib/format";
 import { useAction } from "@/lib/queries";
@@ -39,29 +39,80 @@ function StageForm({ d, allowReported }: { d: Detail; allowReported?: boolean })
   );
 }
 
+function Attachment({ d, e }: { d: Detail; e: Detail["evidence"][number] }) {
+  const id = d.application.id;
+  const src = `/api/applications/${id}/evidence/${e.id}/file`;
+  const remove = useAction(() => api.del(`/applications/${id}/evidence/${e.id}`), { invalidate: [["application", id]], success: "Attachment deleted." });
+  const [isPdf, setIsPdf] = useState(false);
+  return (
+    <div className="flex items-start gap-3 rounded-xl border border-line bg-surface-2 p-3 text-[13px]">
+      <a href={src} target="_blank" rel="noreferrer" className="block shrink-0 overflow-hidden rounded-lg border border-line bg-surface">
+        {isPdf ? (
+          <span className="grid size-16 place-items-center text-ink-3"><FileText className="size-6" /></span>
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element -- a private, signed-in file, not a static asset
+          <img src={src} alt={e.text || "Attached evidence"} className="size-16 object-cover" onError={() => setIsPdf(true)} />
+        )}
+      </a>
+      <div className="min-w-0 flex-1">
+        <div className="font-medium text-ink">Your attachment</div>
+        {e.text && <p className="mt-0.5 text-ink-2">{e.text}</p>}
+        <div className="mt-1 text-[11.5px] text-ink-3">{dateTime(e.created_at)} · stays with this application until you delete it</div>
+      </div>
+      <Button size="sm" variant="ghost" icon={<Trash2 className="size-3.5" />} loading={remove.isPending} onClick={() => remove.mutate()} aria-label="Delete attachment">Delete</Button>
+    </div>
+  );
+}
+
 function Evidence({ d }: { d: Detail }) {
   const id = d.application.id;
   const [text, setText] = useState("");
   const [ref, setRef] = useState("");
+  const fileInput = useRef<HTMLInputElement>(null);
   const save = useAction(() => api.post(`/applications/${id}/evidence`, { text, reference_number: ref || null }), {
     invalidate: [["application", id]],
     success: "Evidence saved.",
     onSuccess: () => { setText(""); setRef(""); },
   });
+  const attach = useAction((f: File) => {
+    const fd = new FormData();
+    fd.append("file", f);
+    fd.append("note", text);
+    return api.upload(`/applications/${id}/evidence/attachment`, fd);
+  }, { invalidate: [["application", id]], success: "Attached. Only you can see it.", onSuccess: () => setText("") });
   return (
     <div className="space-y-3">
-      {d.evidence.map((e) => (
-        <div key={e.id} className="rounded-xl border border-line bg-surface-2 p-3 text-[13px]">
-          {e.reference_number && <div className="font-mono text-[12.5px] text-ink">Reference {e.reference_number}</div>}
-          {e.text && <p className="mt-1 text-ink-2">{e.text}</p>}
-          <div className="mt-1 text-[11.5px] text-ink-3">{e.kind.replace("_", " ")} · {dateTime(e.created_at)}{e.page_hash ? ` · page ${e.page_hash.slice(0, 10)}` : ""}</div>
-        </div>
-      ))}
+      {d.evidence.map((e) =>
+        e.kind === "screenshot" && e.document_id ? (
+          <Attachment key={e.id} d={d} e={e} />
+        ) : (
+          <div key={e.id} className="rounded-xl border border-line bg-surface-2 p-3 text-[13px]">
+            {e.reference_number && <div className="font-mono text-[12.5px] text-ink">Reference {e.reference_number}</div>}
+            {e.text && <p className="mt-1 text-ink-2">{e.text}</p>}
+            <div className="mt-1 text-[11.5px] text-ink-3">{e.kind.replace("_", " ")} · {dateTime(e.created_at)}{e.page_hash ? ` · page ${e.page_hash.slice(0, 10)}` : ""}</div>
+          </div>
+        ),
+      )}
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_180px]">
         <Textarea className="min-h-[60px]" placeholder="Paste the confirmation message or email" value={text} onChange={(e) => setText(e.target.value)} />
         <div className="space-y-2">
           <Input placeholder="Reference number" value={ref} onChange={(e) => setRef(e.target.value)} />
           <Button className="w-full" size="sm" variant="secondary" disabled={!text && !ref} loading={save.isPending} onClick={() => save.mutate()}>Save evidence</Button>
+          <input
+            ref={fileInput}
+            type="file"
+            accept="image/png,image/jpeg,image/webp,application/pdf"
+            className="sr-only"
+            aria-label="Attach a screenshot or PDF"
+            onChange={(ev) => {
+              const f = ev.target.files?.[0];
+              if (f) attach.mutate(f);
+              ev.target.value = "";
+            }}
+          />
+          <Button className="w-full" size="sm" variant="ghost" icon={<ImagePlus className="size-3.5" />} loading={attach.isPending} onClick={() => fileInput.current?.click()}>
+            Attach a screenshot
+          </Button>
         </div>
       </div>
     </div>
@@ -135,7 +186,7 @@ export function OutcomePanel({ d }: { d: Detail }) {
             <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-ok-soft text-ok"><CircleCheck className="size-6" /></span>
             <div>
               <div className="eyebrow text-ok">Sent and confirmed</div>
-              <h3 className="font-display mt-1 text-[26px] leading-tight text-ink">The application went through</h3>
+              <h2 className="font-display mt-1 text-[26px] leading-tight text-ink">The application went through</h2>
               <p className="mt-1 text-[13.5px] text-ink-2">
                 Confirmation observed {dateTime(d.application.confirmed_at)}{ref ? <> · reference <span className="font-mono text-ink">{ref}</span></> : null}. Lintel never sends it again.
               </p>
@@ -150,7 +201,7 @@ export function OutcomePanel({ d }: { d: Detail }) {
             <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-warn-soft text-warn"><AlertTriangle className="size-6" /></span>
             <div>
               <div className="eyebrow text-warn">Submission uncertain</div>
-              <h3 className="font-display mt-1 text-[26px] leading-tight text-ink">Lintel can&apos;t confirm this was sent</h3>
+              <h2 className="font-display mt-1 text-[26px] leading-tight text-ink">Lintel can&apos;t confirm this was sent</h2>
               <p className="mt-1 max-w-2xl text-[13.5px] text-ink-2">
                 The submit intent was written, the click happened, then no confirmation was seen. Lintel will not retry: a second click could send it twice.
                 Check your email or the site. If you find a confirmation, record it below.
@@ -167,7 +218,7 @@ export function OutcomePanel({ d }: { d: Detail }) {
             <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-accent-soft text-accent"><MailQuestion className="size-6" /></span>
             <div>
               <div className="eyebrow">Sent by you</div>
-              <h3 className="font-display mt-1 text-[26px] leading-tight text-ink">You sent this one yourself</h3>
+              <h2 className="font-display mt-1 text-[26px] leading-tight text-ink">You sent this one yourself</h2>
               <p className="mt-1 text-[13.5px] text-ink-2">Recorded honestly as sent outside the Guard. Paste the confirmation so your outcome record has evidence.</p>
             </div>
           </div>
@@ -201,7 +252,7 @@ export function OutcomePanel({ d }: { d: Detail }) {
       </div>
 
       <Card className="p-6">
-        <SectionTitle hint="Text, not pictures: the matched confirmation text, the reference number and a page hash.">Evidence</SectionTitle>
+        <SectionTitle hint="Text, not pictures, by default: the matched confirmation text, the reference number and a page hash. You can attach a screenshot yourself.">Evidence</SectionTitle>
         <Evidence d={d} />
       </Card>
       <p className="text-center text-[12.5px] text-ink-3">No feature here promises an interview. <Link href="/outcomes" className="text-accent hover:underline">See what&apos;s working for you</Link>.</p>

@@ -25,7 +25,7 @@ export function FitBadge({ label, score }: { label: FitLabel | null; score?: num
   return (
     <Badge tone={tone[label]}>
       {text}
-      {score !== undefined && score !== null && label !== "conflict" && <span className="tabular-nums opacity-70">{Math.round(score * 100)}</span>}
+      {score !== undefined && score !== null && label !== "conflict" && <span className="border-l border-current/25 pl-1.5 tabular-nums">{Math.round(score * 100)}</span>}
     </Badge>
   );
 }

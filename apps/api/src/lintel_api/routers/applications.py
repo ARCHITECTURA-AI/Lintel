@@ -4,11 +4,13 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, File, Form, UploadFile
+from fastapi.responses import Response as RawResponse
 from lintel_schemas import STATE_LABELS, ApplicationState, FitBrief
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
+from .. import storage
 from ..db.models import (
     AnswerDraft,
     Application,
@@ -371,6 +373,72 @@ def add_evidence(app_id: uuid.UUID, body: EvidenceIn, ctx: UserCtx) -> dict:
         t.status, t.resolved_at = "done", now()
     ctx.db.flush()
     return row(ev)
+
+
+EVIDENCE_TYPES = {"image/png": ".png", "image/jpeg": ".jpg", "image/webp": ".webp", "application/pdf": ".pdf"}
+EVIDENCE_MAX_BYTES = 8 * 1024 * 1024
+
+
+@router.post("/{app_id}/evidence/attachment")
+async def attach_evidence(app_id: uuid.UUID, ctx: UserCtx, file: UploadFile = File(...), note: str = Form("")) -> dict:
+    """A screenshot or PDF the person chooses to keep. Lintel never takes screenshots itself."""
+
+    app = _app(ctx, app_id)
+    ctype = (file.content_type or "").split(";")[0].strip().lower()
+    if ctype not in EVIDENCE_TYPES:
+        raise bad_request("bad_type", "Attach a PNG, JPEG, WebP or PDF.")
+    data = await file.read()
+    if not data:
+        raise bad_request("empty_file", "That file is empty.")
+    if len(data) > EVIDENCE_MAX_BYTES:
+        raise bad_request("too_large", "Attachments can be up to 8 MB.")
+    key, digest = storage.put(ctx.uid, data)
+    name = (file.filename or f"evidence{EVIDENCE_TYPES[ctype]}").replace('"', "")[:120]
+    doc = Document(user_id=ctx.uid, kind="evidence", filename=name, content_type=ctype, size_bytes=len(data),
+                   sha256=digest, storage_key=key)
+    ctx.db.add(doc)
+    ctx.db.flush()
+    ev = Evidence(user_id=ctx.uid, application_id=app.id, kind="screenshot", text=note[:500], document_id=doc.id)
+    ctx.db.add(ev)
+    for t in ctx.db.scalars(select(UserTask).where(UserTask.application_id == app.id, UserTask.type == "confirm_submission",
+                                                   UserTask.status == "open")):
+        t.status, t.resolved_at = "done", now()
+    audit(ctx.db, ctx.uid, "user", "evidence.attached", "application", app.id, sha256=digest, size=len(data))
+    ctx.db.flush()
+    return row(ev, document=row(doc, exclude={"parsed", "storage_key"}))
+
+
+def _evidence(ctx: UserCtx, app_id: uuid.UUID, ev_id: uuid.UUID) -> Evidence:
+    ev = ctx.db.get(Evidence, ev_id)
+    if ev is None or ev.application_id != app_id:
+        raise not_found("Evidence not found.")
+    return ev
+
+
+@router.get("/{app_id}/evidence/{ev_id}/file")
+def evidence_file(app_id: uuid.UUID, ev_id: uuid.UUID, ctx: UserCtx) -> RawResponse:
+    ev = _evidence(ctx, app_id, ev_id)
+    doc = ctx.db.get(Document, ev.document_id) if ev.document_id else None
+    if doc is None or doc.deleted_at:
+        raise not_found("This evidence has no file.")
+    return RawResponse(storage.get(ctx.uid, doc.storage_key), media_type=doc.content_type,
+                       headers={"Content-Disposition": f'inline; filename="{doc.filename}"', "Cache-Control": "private, max-age=300"})
+
+
+@router.delete("/{app_id}/evidence/{ev_id}")
+def delete_evidence(app_id: uuid.UUID, ev_id: uuid.UUID, ctx: UserCtx) -> dict:
+    """The person's own attachments stay until they delete them. What the runner observed stays."""
+
+    ev = _evidence(ctx, app_id, ev_id)
+    if ev.kind != "screenshot":
+        raise conflict("kept_evidence", "Lintel keeps the confirmation it observed; only your own attachments can be deleted.")
+    doc = ctx.db.get(Document, ev.document_id) if ev.document_id else None
+    ctx.db.delete(ev)
+    if doc is not None:
+        doc.deleted_at = now()
+        storage.delete(ctx.uid, doc.storage_key)
+    audit(ctx.db, ctx.uid, "user", "evidence.deleted", "application", app_id)
+    return {"ok": True}
 
 
 class FlagIn(BaseModel):

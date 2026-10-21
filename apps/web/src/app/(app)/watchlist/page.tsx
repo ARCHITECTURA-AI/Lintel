@@ -66,7 +66,7 @@ export default function WatchlistPage() {
                 <div><div className="text-ink-3">Match you</div><div className="font-display text-[22px] text-ink tabular-nums">{c.matched}</div></div>
                 <div>
                   <div className="text-ink-3">Size</div>
-                  <select className="mt-1 w-full bg-transparent text-[13px] text-ink outline-none" value={c.company_size ?? ""} onChange={(e) => setCompanySize.mutate({ id: c.id, size: e.target.value })}>
+                  <select aria-label={`Company size for ${c.name}`} className="mt-1 w-full bg-transparent text-[13px] text-ink outline-none" value={c.company_size ?? ""} onChange={(e) => setCompanySize.mutate({ id: c.id, size: e.target.value })}>
                     <option value="">Not set</option>
                     {SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>

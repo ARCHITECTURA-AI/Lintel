@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import { Check, Copy, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { forwardRef, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
+import { cloneElement, forwardRef, isValidElement, useId, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 
 export const cx = clsx;
 
@@ -132,10 +132,14 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
 });
 
 export function Field({ label, hint, children, error, htmlFor }: { label: ReactNode; hint?: ReactNode; children: ReactNode; error?: string | null; htmlFor?: string }) {
+  // Link the label to its control: use the control's id, or give it one.
+  const generated = useId();
+  const child = isValidElement<{ id?: string }>(children) ? children : null;
+  const id = htmlFor ?? child?.props.id ?? generated;
   return (
     <div>
-      <Label htmlFor={htmlFor} hint={hint}>{label}</Label>
-      {children}
+      <Label htmlFor={child || htmlFor ? id : undefined} hint={hint}>{label}</Label>
+      {child && !htmlFor && !child.props.id ? cloneElement(child, { id }) : children}
       {error && <p className="mt-1 text-[12.5px] text-bad">{error}</p>}
     </div>
   );

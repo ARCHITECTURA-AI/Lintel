@@ -53,7 +53,7 @@ export function SectionTitle({ children, hint, gate }: { children: ReactNode; hi
   return (
     <div className="mb-3 mt-1">
       {gate && <div className="eyebrow mb-1 text-accent">{gate}</div>}
-      <h3 className="font-display text-[21px] leading-tight text-ink">{children}</h3>
+      <h2 className="font-display text-[21px] leading-tight text-ink">{children}</h2>
       {hint && <p className="mt-1 text-[13.5px] text-ink-2">{hint}</p>}
     </div>
   );

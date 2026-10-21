@@ -16,6 +16,8 @@ from .harness import Account, Stack, owner_conn, stop, wait_until
 
 BACKEND = ("acme", "Backend Engineer, Platform")
 _n = 0
+# Preparation completion across every scenario: fills started, and fills that reached review.
+PREP = {"attempted": 0, "prepared": 0}
 
 
 def _account(stack: Stack, *companies: str) -> Account:
@@ -58,9 +60,30 @@ def _ready(stack: Stack, company: str, title: str, **runner_env: str) -> tuple[A
     a = _account(stack, company)
     aid = a.app_id(title)
     a.to_drafted(aid)
+    PREP["attempted"] += 1
     a.fill(aid, **runner_env)
     assert a.state(aid) == "in_review", f"fill ended in {a.state(aid)}"
+    PREP["prepared"] += 1
     return a, aid
+
+
+def field_accuracy() -> tuple[int, int]:
+    """Fields the runner read back after filling: (matched the payload, total checked)."""
+
+    with owner_conn() as c:
+        ok, total = c.execute(
+            "SELECT count(*) FILTER (WHERE s.verification = 'ok'), count(*) FROM run_steps s "
+            "JOIN application_runs r ON r.id = s.run_id WHERE s.action = 'verify' AND s.field_key IS NOT NULL").fetchone()
+    return ok, total
+
+
+def unapproved_intents() -> int:
+    """Submit intents without a consumed approval for the same payload. Must be zero."""
+
+    with owner_conn() as c:
+        return c.execute(
+            "SELECT count(*) FROM submit_intents i LEFT JOIN approval_records a ON a.id = i.approval_id "
+            "WHERE a.id IS NULL OR a.consumed_at IS NULL OR a.payload_hash <> i.payload_hash").fetchone()[0]
 
 
 # ---------------------------------------------------------------------------
@@ -276,5 +299,8 @@ def run_all(stack: Stack, log: Callable[[str], None] = print) -> dict[str, Any]:
     # Last: a bot challenge downgrades the Lab destination for everything after it.
     log("lab: captcha")
     lab.append(captcha_flow(stack))
-    return {"lab": lab, "guard": guard, "injection": inj, "crash_tests": crash,
+    ok, total = field_accuracy()
+    beta = {"prepared": PREP["prepared"], "attempted": PREP["attempted"], "fields_ok": ok, "fields_checked": total,
+            "unapproved_intents": unapproved_intents()}
+    return {"lab": lab, "guard": guard, "injection": inj, "crash_tests": crash, "beta": beta,
             "seconds": round(time.monotonic() - started, 1)}

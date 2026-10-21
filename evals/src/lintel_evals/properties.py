@@ -189,6 +189,43 @@ def prop_lifecycle_matches_the_spec(src: str, dst: str) -> None:
     assert accepted == allowed or src == dst, (src, dst, accepted, allowed)
 
 
+_USER_TABLES = ["profile_facts", "jobs", "applications", "approval_records", "runner_devices"]
+
+
+@settings(max_examples=15, deadline=None, database=None, suppress_health_check=list(HealthCheck))
+@given(st.integers(min_value=2, max_value=5), st.sampled_from(["fit_review", "drafted", "approved"]))
+def prop_no_cross_user_reads(people: int, state: str) -> None:
+    """Under row-level security a person sees, changes and creates only their own rows."""
+
+    with _conn() as c:
+        made = [make_application(c, state) for _ in range(people)]
+        for i, me in enumerate(made):
+            c.execute("INSERT INTO profile_facts (user_id, kind, claim_scope, statement, source_type) "
+                      "VALUES (%s, 'achievement', 'employment', %s, 'user_entry')", (me["user"], f"fact {i}"))
+        for me in made:
+            with c.transaction():
+                c.execute("SET LOCAL ROLE lintel_app")
+                c.execute("SELECT set_config('app.user_id', %s, true)", (str(me["user"]),))
+                for t in _USER_TABLES:
+                    foreign = c.execute(f"SELECT count(*) FROM {t} WHERE user_id <> %s", (me["user"],)).fetchone()[0]
+                    assert foreign == 0, (t, foreign)
+                others = [m["app"] for m in made if m is not me]
+                changed = c.execute("UPDATE applications SET fit_score = 1 WHERE id = ANY(%s)", (others,)).rowcount
+                assert changed == 0
+                gone = c.execute("DELETE FROM profile_facts WHERE user_id <> %s", (me["user"],)).rowcount
+                assert gone == 0
+            victim = next(m for m in made if m is not me)
+            try:
+                with c.transaction():
+                    c.execute("SET LOCAL ROLE lintel_app")
+                    c.execute("SELECT set_config('app.user_id', %s, true)", (str(me["user"]),))
+                    c.execute("INSERT INTO profile_facts (user_id, kind, claim_scope, statement, source_type) "
+                              "VALUES (%s, 'achievement', 'employment', 'planted', 'user_entry')", (victim["user"],))
+                raise AssertionError("wrote a row for another person")
+            except psycopg.Error as e:
+                assert e.sqlstate == "42501", e  # row-level security refused it
+
+
 _text = st.text(min_size=0, max_size=40)
 
 
@@ -216,6 +253,8 @@ PROPERTIES: list[tuple[str, Callable[[], None], int]] = [
     ("A stale fencing token never records an outcome; the current one records once", prop_stale_fence_rejected, 40),
     ("An uncertain submission is never armed, submitted or rewound", prop_uncertain_is_never_retried, 20),
     ("The database accepts exactly the lifecycle transitions the spec allows", prop_lifecycle_matches_the_spec, 120),
+    ("No cross-user exposure: row-level security hides, protects and refuses other people's rows",
+     prop_no_cross_user_reads, 15),
     ("Any single changed answer changes the approved payload hash; order never does", prop_any_change_breaks_the_approval, 200),
 ]
 

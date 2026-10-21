@@ -40,7 +40,7 @@ function ResumeStep({ onDone }: { onDone: () => void }) {
   };
   return (
     <div>
-      <h2 className="font-display text-[28px] text-ink">Start with your résumé</h2>
+      <h1 className="font-display text-[28px] text-ink">Start with your résumé</h1>
       <p className="mt-1 text-[14px] text-ink-2">Lintel reads it into candidate facts. Nothing is used until you confirm it. Contact details are pulled out locally and never shown to a model.</p>
       <button type="button" onClick={() => input.current?.click()}
         onDragOver={(e) => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)}
@@ -60,7 +60,7 @@ function FactsStep() {
   const { data: cands } = useCandidates();
   return (
     <div>
-      <h2 className="font-display text-[28px] text-ink">Confirm what&apos;s true</h2>
+      <h1 className="font-display text-[28px] text-ink">Confirm what&apos;s true</h1>
       <p className="mt-1 mb-6 text-[14px] text-ink-2">
         Each confirmed fact joins your ledger with its source line. Drafts may only cite confirmed facts. Edit anything that overstates, and reject anything wrong.
       </p>
@@ -74,7 +74,7 @@ function TargetsStep({ t, setT }: { t: Targets; setT: (t: Targets) => void }) {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="font-display text-[28px] text-ink">What are you looking for?</h2>
+        <h1 className="font-display text-[28px] text-ink">What are you looking for?</h1>
         <p className="mt-1 text-[14px] text-ink-2">Roles on your watchlist that match become fit briefs. Everything else stays visible under Jobs.</p>
       </div>
       <Field label="Titles to match" hint="any word in the title"><TagInput value={t.titles ?? []} onChange={(v) => setT({ ...t, titles: v })} placeholder="e.g. backend, ml engineer" suggestions={["engineer", "backend", "ai engineer", "ml engineer", "platform"]} /></Field>
@@ -90,7 +90,7 @@ function FiltersStep({ f, setF, budget, setBudget }: { f: HardFilters; setF: (f:
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-[28px] text-ink">Hard filters and your weekly budget</h2>
+        <h1 className="font-display text-[28px] text-ink">Hard filters and your weekly budget</h1>
         <p className="mt-1 text-[14px] text-ink-2">Fit briefs flag roles that conflict with these. Lintel never guesses your work authorization; it asks, and only reuses what you confirm.</p>
       </div>
       <div>
@@ -149,7 +149,7 @@ function WatchlistStep() {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="font-display text-[28px] text-ink">Companies to watch</h2>
+        <h1 className="font-display text-[28px] text-ink">Companies to watch</h1>
         <p className="mt-1 text-[14px] text-ink-2">Paste a careers page. Lintel detects Greenhouse, Lever or Ashby and reads the public job board a few times a day. No scraping, no logins.</p>
       </div>
       <div className="flex gap-2">
@@ -211,7 +211,7 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-dvh bg-bg">
       <header className="flex items-center justify-between px-6 py-5"><Wordmark /><span className="text-[13px] text-ink-3">Step {step + 1} of {STEPS.length}</span></header>
-      <div className="mx-auto max-w-3xl px-4 pb-24">
+      <main className="mx-auto max-w-3xl px-4 pb-24">
         <ol className="mb-8 grid grid-cols-6 gap-1.5" aria-label="Setup progress">
           {STEPS.map((s, i) => (
             <li key={s}>
@@ -228,7 +228,7 @@ export default function OnboardingPage() {
           {step === 4 && <WatchlistStep />}
           {step === 5 && (
             <div>
-              <h2 className="font-display text-[28px] text-ink">Pair your Local Runner</h2>
+              <h1 className="font-display text-[28px] text-ink">Pair your Local Runner</h1>
               <p className="mt-1 mb-6 text-[14px] text-ink-2">The cloud plans and remembers; your machine acts. You can do this later: until then, Lintel prepares packets you copy yourself.</p>
               <PairInstructions />
             </div>
@@ -241,7 +241,7 @@ export default function OnboardingPage() {
             </div>
           </div>
         </Card>
-      </div>
+      </main>
     </div>
   );
 }

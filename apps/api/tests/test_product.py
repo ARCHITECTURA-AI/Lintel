@@ -203,6 +203,30 @@ def test_no_reply_window_drafts_the_follow_up(stack, account):
     assert any(n["kind"].startswith("follow_up") for n in a.get("/notifications")["items"])
 
 
+PNG = bytes.fromhex("89504e470d0a1a0a0000000d4948445200000001000000010806000000"
+                    "1f15c4890000000d49444154789c6360000002000154a24f5d0000000049454e44ae426082")
+
+
+def test_people_can_attach_and_delete_their_own_evidence(stack, account):
+    a = account("acme")
+    aid = a.app_id(BACKEND)
+    a.to_drafted(aid)
+    a.post(f"/applications/{aid}/report-sent", {})
+    r = a.c.post(f"/applications/{aid}/evidence/attachment", files={"file": ("confirmation.png", PNG, "image/png")},
+                 data={"note": "Confirmation email"})
+    assert r.status_code == 200, r.text
+    ev = r.json()
+    assert ev["kind"] == "screenshot" and ev["document"]["sha256"] and "storage_key" not in ev["document"]
+    got = a.c.get(f"/applications/{aid}/evidence/{ev['id']}/file")
+    assert got.status_code == 200 and got.content == PNG
+    bad = a.c.post(f"/applications/{aid}/evidence/attachment", files={"file": ("x.exe", b"MZ", "application/octet-stream")})
+    assert bad.status_code == 400 and bad.json()["error"]["code"] == "bad_type"
+    other = _plain(stack, "evidence-other@lintel.dev")
+    assert other.get(f"/applications/{aid}/evidence/{ev['id']}/file").status_code == 404
+    assert a.c.delete(f"/applications/{aid}/evidence/{ev['id']}").status_code == 200
+    assert a.c.get(f"/applications/{aid}/evidence/{ev['id']}/file").status_code == 404
+
+
 def test_draft_only_packet_can_be_closed(stack, account):
     a = account("acme")
     aid = a.app_id(BACKEND)

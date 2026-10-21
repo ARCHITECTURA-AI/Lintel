@@ -308,7 +308,7 @@ export interface ApplicationDetail {
   intents: { id: string; fence: number; payload_hash: string; mode: string; created_at: string }[];
   events: EventRow[];
   outcomes: OutcomeRow[];
-  evidence: { id: string; kind: string; text: string; reference_number: string | null; page_hash: string | null; created_at: string }[];
+  evidence: { id: string; kind: string; text: string; reference_number: string | null; page_hash: string | null; document_id: string | null; created_at: string }[];
   variants: VariantRow[];
   follow_ups: FollowUpRow[];
   facts: Record<string, FactRow>;
