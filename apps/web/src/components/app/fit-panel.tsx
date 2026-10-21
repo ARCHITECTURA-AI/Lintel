@@ -114,6 +114,7 @@ export function FitPanel({ d }: { d: Detail }) {
     );
   }
 
+  const advisesSkip = d.application.recommendation === "skip";
   return (
     <Card className="gate-ring p-6">
       <SectionTitle gate="Gate 1 · Fit brief" hint="Requirements met with evidence, gaps, uncertain items and conflicts. You decide go or skip.">
@@ -125,7 +126,7 @@ export function FitPanel({ d }: { d: Detail }) {
           <Badge tone="accent"><CalendarClock className="size-3" /> Queued for the week of {d.application.week_budget_slot}</Badge>
         ) : (
           <Button
-            variant="gate"
+            variant={advisesSkip ? "secondary" : "gate"}
             size="lg"
             loading={go.isPending}
             onClick={() =>
@@ -137,12 +138,12 @@ export function FitPanel({ d }: { d: Detail }) {
               })
             }
           >
-            Go · use 1 of {b.remaining} left this week
+            {b.remaining > 0 ? `Go · use 1 of ${b.remaining} left this week` : "Go · this week's budget is full"}
           </Button>
         )}
         <Popover.Root>
           <Popover.Trigger asChild>
-            <Button variant="secondary" size="lg" icon={<CircleSlash className="size-4" />}>Skip</Button>
+            <Button variant={advisesSkip ? "primary" : "secondary"} size="lg" icon={<CircleSlash className="size-4" />}>Skip</Button>
           </Popover.Trigger>
           <Popover.Portal>
             <Popover.Content sideOffset={8} align="start" className="z-50 w-80 rounded-xl border border-line bg-surface p-4 shadow-[var(--shadow-lg)]">

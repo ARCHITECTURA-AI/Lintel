@@ -127,6 +127,9 @@ def build_fit_brief(db: Session, user: User, app: Application, job: Job) -> FitB
     if hard:
         label, rec = FitLabel.conflict, Recommendation.skip
         reason = "Conflicts with your hard filters: " + "; ".join(c.filter.lower() for c in hard) + "."
+    elif not requirements:
+        label, rec = FitLabel.possible, Recommendation.apply
+        reason = "The posting states no requirements Lintel could check. Read it yourself before you decide."
     elif score >= 0.75:
         label, rec = FitLabel.strong, Recommendation.apply
         reason = "Your confirmed facts cover most of what the role asks for."
@@ -149,7 +152,7 @@ def build_fit_brief(db: Session, user: User, app: Application, job: Job) -> FitB
 
     met = sum(1 for r in requirements if r.status == RequirementStatus.met)
     summary = (
-        f"{met} of {len(requirements)} requirements met with evidence"
+        (f"{met} of {len(requirements)} requirements met with evidence" if requirements else "No checkable requirements in the posting")
         + (f", {len(askable)} worth asking about" if askable else "")
         + (f", {len(hard)} hard-filter conflict{'s' if len(hard) != 1 else ''}" if hard else "")
         + "."

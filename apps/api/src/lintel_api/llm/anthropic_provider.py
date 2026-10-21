@@ -147,7 +147,8 @@ class AnthropicProvider:
                 system=(
                     "You extract hiring requirements from a job description. Return each distinct requirement "
                     "as one short line in the posting's own words, marked must or nice. At most 12. Skip "
-                    "benefits, company boilerplate and responsibilities that are not requirements."
+                    "benefits, company boilerplate, policy statements (visa sponsorship, equal opportunity) and "
+                    "responsibilities that are not requirements."
                 ),
                 user=f"<job title=\"{title}\">\n{description[:24000]}\n</job>",
                 schema=_obj({"requirements": _arr(_obj({"text": STR, "importance": {"type": "string", "enum": ["must", "nice"]}}))}),

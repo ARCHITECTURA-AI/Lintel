@@ -53,8 +53,9 @@ def observe(page: Page, timeout_s: float = 30.0) -> Outcome:
             if not ref:
                 rm = REFERENCE.search(text)
                 ref = rm.group(1) if rm else None
-            start = max(0, m.start() - 80)
-            snippet = re.sub(r"\s+", " ", text[start : m.end() + 160]).strip()
+            # Start at the line holding the match so site chrome above it stays out of the evidence.
+            start = text.rfind("\n", 0, m.start()) + 1
+            snippet = re.sub(r"\s+", " ", text[start : m.end() + 200]).strip()
             digest = hashlib.sha256(re.sub(r"\s+", " ", text).strip().encode()).hexdigest()
             return Outcome("confirmed", snippet, ref, digest)
         try:

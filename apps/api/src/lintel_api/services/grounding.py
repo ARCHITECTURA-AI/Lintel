@@ -308,8 +308,14 @@ def _fact_for_answer(d: AnswerDraft, value: Any) -> tuple[str, dict[str, Any], s
         shown = next((o["label"] for o in d.options if o["value"] == value), value)
     if handle.startswith("eligibility."):
         _, field, country = (handle.split(".") + ["US"])[:3]
-        what = "authorized to work" if field == "work_auth" else "in need of visa sponsorship"
-        return "eligibility", {"field": field, "country": country, "value": shown}, f"Am I {what} in {country}? {shown}."
+        where = "the US" if country == "US" else country
+        yes = str(shown).strip().lower().startswith(("yes", "true", "y"))
+        no = str(shown).strip().lower().startswith(("no", "false", "n"))
+        if field == "work_auth":
+            text = f"I am authorized to work in {where}." if yes else f"I am not authorized to work in {where}." if no else f"Work authorization in {where}: {shown}."
+        else:
+            text = f"I will need visa sponsorship to work in {where}." if yes else f"I do not need visa sponsorship to work in {where}." if no else f"Visa sponsorship in {where}: {shown}."
+        return "eligibility", {"field": field, "country": country, "value": shown}, text
     for prefix, (kind, _key) in _HANDLE_FACT.items():
         if handle.startswith(prefix) and "." in handle:
             field = handle.split(".", 1)[1].replace("[0]", "")

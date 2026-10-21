@@ -87,6 +87,11 @@ def top_k(query: str, items: Iterable[tuple[str, str]], k: int, floor: float = 0
     return scored[:k]
 
 
+# Policy statements in a requirements list (sponsorship, EEO) are conflicts or boilerplate, not
+# something a candidate can meet with evidence. Sponsorship is handled as a hard-filter conflict.
+NOT_A_REQUIREMENT = re.compile(r"\b(sponsor\w*|visas?|equal opportunity|eeo|accommodation)\b", re.I)
+
+
 def requirement_lines(description: str) -> list[tuple[str, str]]:
     """Pull (text, importance) requirement lines out of a job description."""
 
@@ -108,7 +113,7 @@ def requirement_lines(description: str) -> list[tuple[str, str]]:
         if is_heading and OTHER_HEADINGS.match(bare):
             mode = None
             continue
-        if mode and 12 <= len(bare) <= 240:
+        if mode and 12 <= len(bare) <= 240 and not NOT_A_REQUIREMENT.search(bare):
             out.append((bare, mode))
     if not out:
         for sentence in re.split(r"(?<=[.!?])\s+|\n", text):
