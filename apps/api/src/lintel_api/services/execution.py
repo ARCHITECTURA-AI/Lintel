@@ -224,6 +224,9 @@ def report_user_submitted(db: Session, user: User, app: Application, note: str =
     open_task(db, user.id, "confirm_submission", title="Add the confirmation", application_id=app.id,
               body="Paste the confirmation message or reference number so your outcome record has evidence.",
               dedupe_key=f"confirm:{app.id}")
+    from .outcomes import schedule_follow_up
+
+    schedule_follow_up(db, user, app)
 
 
 # ---------------------------------------------------------------------------

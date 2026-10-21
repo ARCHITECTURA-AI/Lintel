@@ -19,6 +19,9 @@ BEGIN
 END
 $$;
 
+-- Don't rely on the default grant on the public schema: a recreated schema has none.
+GRANT USAGE ON SCHEMA public TO lintel_app;
+
 -- The current user for row-level security. NULL when unset, which matches no rows.
 CREATE FUNCTION app_user_id() RETURNS uuid
 LANGUAGE sql STABLE AS $$

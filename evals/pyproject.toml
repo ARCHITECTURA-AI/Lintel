@@ -3,7 +3,7 @@ name = "lintel-evals"
 version = "0.1.0"
 description = "Claim-check evaluation set, prompt-injection cases and the Trust Report generator."
 requires-python = ">=3.12"
-dependencies = ["lintel-schemas", "lintel-trust", "lintel-runner"]
+dependencies = ["lintel-schemas", "lintel-trust", "lintel-runner", "lintel-api", "lintel-lab", "httpx>=0.27", "psycopg[binary]>=3.2"]
 
 [project.scripts]
 lintel-evals = "lintel_evals.run:main"

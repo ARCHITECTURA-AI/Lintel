@@ -515,6 +515,8 @@ class RunExecutor:
         }
         self.browser.show_banner(self.page, "paused", titles.get(reason, "Complete this step, then press Resume"), detail)
         self.resume_requested.clear()
+        if reason in os.environ.get("LINTEL_TEST_HUMAN_RESOLVES", "").split(","):
+            self._test_person_resolves(reason)
         deadline = time.monotonic() + 60 * 60
         while not self.resume_requested.is_set():
             self._check_cancel()
@@ -541,6 +543,15 @@ class RunExecutor:
         self.gate = self._gate()
         self.started = time.monotonic()
         self.steps.add("resume", detail="fresh read of the page")
+
+    def _test_person_resolves(self, reason: str) -> None:
+        """Test hook standing in for the person at the paused browser: they deal with it, then press Resume."""
+
+        if reason == "modal":
+            self.page.locator("[role=dialog] button").first.click()
+        elif reason == "session_expired":
+            self.page.reload(wait_until="domcontentloaded")
+        self.resume_requested.set()
 
     # ------------------------------------------------------------------ the Submit Guard
 
@@ -634,8 +645,11 @@ class RunExecutor:
         self.browser.show_banner(page, "info", "Checking the form against your approval", "")
         # Re-read the live page and repair any value from the approved payload before arming.
         graph = self._build_fill_graph()
-        state = graph.invoke({"phase": "observe", "attempts": {}, "no_progress": 0}, {"recursion_limit": 400})
-        if state.get("phase") == "pause" and state.get("reason") != "captcha":
+        while True:
+            state = graph.invoke({"phase": "observe", "attempts": {}, "no_progress": 0}, {"recursion_limit": 400})
+            if state.get("phase") != "pause" or state.get("reason") == "captcha":
+                break
+            # After the person deals with it and resumes, repair the form again before arming.
             self._pause(state.get("reason", "no_progress"), state.get("detail", ""))
         self.steps.add("guard_armed", detail=self.a.support_mode.value)
         self.steps.flush()
@@ -660,7 +674,10 @@ class RunExecutor:
                 self.steps.add("click", detail="final submit, once, after exact approval")
         self.browser.show_banner(page, "armed", self.a.support_mode.value)
         if os.environ.get("LINTEL_TEST_HUMAN_CLICK") == "1" and not self.clicked:
-            # Test hook standing in for the person: a real click on the site's Submit, through the Guard.
+            # Test hooks standing in for the person: an optional edit in the browser after approval,
+            # then a real click on the site's Submit, through the Guard.
+            if os.environ.get("LINTEL_TEST_HUMAN_EDIT"):
+                page.locator("form input[type=text]:visible").first.fill(os.environ["LINTEL_TEST_HUMAN_EDIT"])
             page.locator("form button[type=submit], form input[type=submit]").first.click(no_wait_after=True)
         # Wait for the person's click (assisted fill) or for our own click's outcome.
         while self.fence is None:

@@ -17,7 +17,11 @@ from lintel_schemas import (
     INTERVIEW_OUTCOME_STAGES,
     REPLY_OUTCOME_STAGES,
     ApplicationState,
+    ClaimScope,
+    Fact,
+    FactKind,
     OutcomeStage,
+    SourceType,
 )
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -127,11 +131,15 @@ def draft_follow_up(db: Session, user: User, app: Application) -> tuple[str, lis
     job = db.get(Job, app.job_id)
     facts_now = ledger.current_facts(db, app.id)
     sent = _sent_at(db, app)
-    first_name = ledger.handle_values(facts_now).get("contact.first_name", ("",))[0]
+    name = ledger.handle_values(facts_now).get("contact.first_name")
     when = f"on {sent:%B} {sent.day}" if sent else "recently"
+    # When it was sent is Lintel's own record, not a claim about the person; the sentence cites it.
+    record = Fact(id="lintel:sent", kind=FactKind.achievement, claim_scope=ClaimScope.personal,
+                  statement=f"Applied for {job.title} at {job.company_name} {when}.", source_type=SourceType.user_entry,
+                  source_ref="Lintel's send record")
     sentences: list[tuple[str, list[str]]] = [
         (f"Hello {job.company_name} team,", []),
-        (f"I applied for the {job.title} role {when} and wanted to follow up.", []),
+        (f"I applied for the {job.title} role {when} and wanted to follow up.", [record.id]),
     ]
     from ..llm.heuristics import first_person, relevance
 
@@ -140,10 +148,11 @@ def draft_follow_up(db: Session, user: User, app: Application) -> tuple[str, lis
     if best:
         sentences.append((first_person(best[0].statement), [str(best[0].id)]))
     sentences.append(("I'd welcome the chance to talk about the role.", []))
-    sentences.append((f"Thank you, {first_name}".strip().rstrip(",") + ".", []))
+    sentences.append((f"Thank you, {name[0]}." if name else "Thank you.", [name[1]] if name else []))
     out = []
     for text, ids in sentences:
-        res = check(db, user, job, text, ids, facts_now)
+        res = check(db, user, job, text, [i for i in ids if i != record.id], facts_now,
+                    records=[record] if record.id in ids else None)
         out.append({"text": text, "fact_ids": ids, "check": res.model_dump(mode="json")})
     passing = [s["text"] for s in out if s["check"]["passed"]]
     body = passing[0] + "\n\n" + " ".join(passing[1:-1]) + "\n\n" + passing[-1] if len(passing) > 2 else " ".join(passing)

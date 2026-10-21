@@ -120,6 +120,7 @@ def start(args) -> None:
     signal.signal(signal.SIGINT, _sig)
     print(f"Lintel runner started for {conf['user']['email']} as “{conf['device_name']}”. Waiting for work…")
     idle = 0
+    last_work = time.monotonic()
     try:
         while not stop["now"]:
             try:
@@ -135,6 +136,7 @@ def start(args) -> None:
                 data = None
             if data:
                 idle = 0
+                last_work = time.monotonic()
                 a = RunAssignment.model_validate(data)
                 print(f"→ {a.kind.value} run for application {a.application_id[:8]}")
                 RunExecutor(cfg, token, api, browser, a).execute()
@@ -143,6 +145,9 @@ def start(args) -> None:
                     return
                 continue
             idle += 1
+            if args.idle_exit and time.monotonic() - last_work > args.idle_exit:
+                print("No work. Runner stopped.")
+                return
             # pump browser events so open windows stay responsive between runs
             for p in list(browser.pages.values()):
                 if not p.is_closed():
@@ -169,6 +174,8 @@ def main() -> None:
     s = sub.add_parser("start", help="open the browser and take work")
     s.add_argument("--headless", action="store_true", help="for CI only; real use is headed")
     s.add_argument("--once", action="store_true", help="exit after one run")
+    s.add_argument("--idle-exit", type=float, default=0, metavar="SECONDS",
+                   help="exit when no work has arrived for this long (for scripts)")
     s.set_defaults(fn=start)
     sub.add_parser("status", help="show pairing and recent runs").set_defaults(fn=status)
     sub.add_parser("unpair", help="forget this device locally").set_defaults(fn=unpair)

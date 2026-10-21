@@ -307,7 +307,16 @@ EMPLOYMENT_PATTERNS = [
     r"\bfull[- ]time\b",
     r"\bon the job\b",
     r"\bmy (manager|colleagues|coworkers|teammates at)\b",
+    r"\bat work\b",
+    r"\bin my (day )?job\b",
+    r"\b(my|our) (last|previous|current|former)? ?company\b",
+    r"\bwas paid\b",
+    r"\bfor (a|the|our) clients?\b",
 ]
+
+# Words that say the sentence is about the future or about the person's interest, not a claim of
+# past work: "I'd love to build this at Acme" claims nothing.
+ASPIRATIONAL = r"\b(would|'d|will|hope|hoping|excited|eager|look(ing)? forward|want|wish|plan|join(ing)?|bring(ing)?|apply|applying)\b"
 
 EDUCATION_PATTERNS = [
     r"\b(degree|bachelor'?s|master'?s (degree|in|of)|b\.?\s?tech|m\.?\s?tech|b\.s\.|m\.s\.|b\.sc|m\.sc|ph\.?d|graduated|gpa|cgpa)(?![\w])"
@@ -322,6 +331,7 @@ OVERREACH_WORDS = {
 }
 
 GENERIC_WORDS = {
+    "enjoy", "enjoyed", "cared", "clear", "clearer", "easier", "faster", "simpler", "gain", "gains",
     "experience", "experiences", "role", "roles", "team", "teams", "work", "worked", "working", "company",
     "excited", "exciting", "excite", "opportunity", "opportunities", "believe", "interest", "interested",
     "interesting", "passionate", "passion", "contribute", "contributing", "apply", "applying", "position",

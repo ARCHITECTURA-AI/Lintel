@@ -78,7 +78,7 @@ def check_sentence(
 
     # 2. Scope check
     employers = sorted({f.attributes.employer for f in all_facts if f.attributes.employer})
-    issues = scope_issues(sentence, cited, employers=employers)
+    issues = scope_issues(sentence, cited, employers=employers, other_orgs=context_terms)
     if issues:
         checks.append(
             CheckResult(

@@ -3,7 +3,7 @@ name = "lintel-workspace"
 version = "0.1.0"
 description = "Lintel: the supervised job-application agent. The agent prepares, you sign off."
 requires-python = ">=3.12"
-dependencies = []
+dependencies = ["lintel-schemas", "lintel-trust", "lintel-api", "lintel-runner", "lintel-lab", "lintel-evals"]
 
 [tool.uv.workspace]
 members = [
@@ -42,5 +42,5 @@ ignore = ["E501", "B008", "SIM102", "SIM105"]
 
 [tool.pytest.ini_options]
 testpaths = ["packages/trust/tests", "packages/schemas/tests", "apps/api/tests", "apps/runner/tests", "evals/tests"]
-asyncio_mode = "auto"
+markers = ["e2e: drives the shipped runner in a headless browser against Lintel Lab (slow)"]
 filterwarnings = ["ignore::DeprecationWarning"]

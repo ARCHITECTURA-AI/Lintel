@@ -9,9 +9,10 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from lintel_schemas import ClaimScope, Fact
+from lintel_schemas import ClaimScope, Fact, FactKind
 
 from .lexicon import (
+    ASPIRATIONAL,
     CERTIFICATION_PATTERNS,
     EDUCATION_PATTERNS,
     EMPLOYMENT_PATTERNS,
@@ -58,7 +59,8 @@ def _fact_level(fact: Fact) -> int:
     return 2
 
 
-def scope_issues(sentence: str, facts: list[Fact], *, employers: list[str] | None = None) -> list[ScopeIssue]:
+def scope_issues(sentence: str, facts: list[Fact], *, employers: list[str] | None = None,
+                 other_orgs: list[str] | None = None) -> list[ScopeIssue]:
     issues: list[ScopeIssue] = []
     scopes = {f.claim_scope for f in facts}
     fact_text = " ".join(f.statement for f in facts)
@@ -71,6 +73,14 @@ def scope_issues(sentence: str, facts: list[Fact], *, employers: list[str] | Non
             r"\b(at|for|with|joined)\s+" + re.escape(employer) + r"(?![\w])", sentence, re.IGNORECASE
         ):
             employer_hits.append(employer)
+    # The company being applied to, or any other organization: "At Acme I set up CI" claims a job
+    # there unless the sentence is about the future ("I'd like to set up CI at Acme").
+    if not re.search(ASPIRATIONAL, sentence, re.IGNORECASE):
+        for org in other_orgs or []:
+            if org and org not in employer_hits and re.search(
+                r"\b(at|for)\s+" + re.escape(org) + r"(?![\w])", sentence, re.IGNORECASE
+            ):
+                employer_hits.append(org)
     if employment_hits or employer_hits:
         if ClaimScope.employment not in scopes:
             cited = ", ".join(sorted(s.value for s in scopes)) or "nothing"
@@ -96,6 +106,19 @@ def scope_issues(sentence: str, facts: list[Fact], *, employers: list[str] | Non
                             [employer],
                         )
                     )
+            # The work itself must have happened there, not just a role cited alongside it.
+            work = [f for f in emp_facts if f.kind != FactKind.role and f.attributes.employer]
+            named = {normalize_org(e) for e in employer_hits}
+            if named and work and not any(normalize_org(f.attributes.employer or "") in named for f in work):
+                where = sorted({f.attributes.employer or "" for f in work})
+                issues.append(
+                    ScopeIssue(
+                        "employer_mismatch",
+                        f"The sentence places the work at {', '.join(employer_hits)}, but the cited work was done at "
+                        f"{', '.join(where)}.",
+                        list(employer_hits),
+                    )
+                )
 
     # 2. Proficiency never escalates.
     claimed = proficiency_level(sentence)

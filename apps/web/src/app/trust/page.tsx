@@ -10,7 +10,13 @@ type Report = {
   generated_at: string | null;
   version?: string;
   headline?: { label: string; value: string; target?: string; ok?: boolean }[];
-  claim_check?: { cases: number; unsupported_leaked: number; leakage_rate: number; verifier_recall: number | null; false_blocks: number; by_category: { category: string; cases: number; caught: number; leaked: number }[]; examples: { sentence: string; verdict: string; reason: string }[] };
+  claim_check?: {
+    cases: number; supported?: number; unsupported?: number; unsupported_leaked: number; leakage_rate: number; verifier_recall: number | null; false_blocks: number;
+    by_category: { category: string; cases: number; caught: number; leaked: number }[];
+    examples: { sentence: string; verdict: string; reason: string; category?: string }[];
+    development?: { cases: number; unsupported: number; unsupported_leaked: number; false_blocks: number; supported: number };
+    note?: string;
+  };
   crash_tests?: { point: string; description: string; final_state: string; sends: number; resent: boolean; passed: boolean }[];
   lab?: { flow: string; skin: string; passed: boolean; detail: string }[];
   injection?: { case: string; target: string; held: boolean; detail: string }[];
@@ -80,8 +86,27 @@ export default function TrustReport() {
                 </Card>
                 <p className="mt-3 text-[13px] text-ink-2">
                   {r.claim_check.cases} cases · {r.claim_check.unsupported_leaked} unsupported claims leaked ({(r.claim_check.leakage_rate * 100).toFixed(1)}%) · {r.claim_check.false_blocks} true sentences blocked
-                  {r.claim_check.verifier_recall !== null ? ` · verifier recall ${(r.claim_check.verifier_recall * 100).toFixed(0)}%` : ""}.
+                  {r.claim_check.verifier_recall !== null ? ` · the model-free verifier alone catches ${(r.claim_check.verifier_recall * 100).toFixed(0)}%; the token and scope checks catch the rest` : ""}.
                 </p>
+                {r.claim_check.development && (
+                  <p className="mt-1 text-[13px] text-ink-3">
+                    {r.claim_check.note} Development set: {r.claim_check.development.cases} cases, {r.claim_check.development.unsupported_leaked} of {r.claim_check.development.unsupported} leaked, {r.claim_check.development.false_blocks} of {r.claim_check.development.supported} true sentences blocked.
+                  </p>
+                )}
+                {r.claim_check.examples.length > 0 && (
+                  <Card className="mt-4 overflow-hidden"><ul className="divide-y divide-line">
+                    {r.claim_check.examples.map((e) => (
+                      <li key={e.sentence} className="px-5 py-3 text-[13.5px]">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className={cx("rounded-full px-2 py-0.5 text-[11.5px] font-medium", e.verdict === "blocked" ? "bg-ok-soft text-ok" : e.verdict === "leaked" ? "bg-bad-soft text-bad" : "bg-warn-soft text-warn")}>{e.verdict}</span>
+                          {e.category && <span className="text-[12px] text-ink-3">{e.category}</span>}
+                        </div>
+                        <div className="mt-1 text-ink">“{e.sentence}”</div>
+                        <div className="text-[12.5px] text-ink-2">{e.reason}</div>
+                      </li>
+                    ))}
+                  </ul></Card>
+                )}
               </Section>
             )}
             {r.crash_tests && (

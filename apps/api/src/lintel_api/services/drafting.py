@@ -63,14 +63,16 @@ def _context(job: Job) -> list[str]:
 
 
 def check(db: Session, user: User, job: Job, text: str, fact_ids: list[str], all_facts: list[ProfileFact],
-          provider: MeteredProvider | None = None) -> SentenceCheck:
+          provider: MeteredProvider | None = None, records: list[Fact] | None = None) -> SentenceCheck:
+    """Check one sentence. `records` are Lintel's own records (e.g. when it was sent), cited like facts."""
+
     by_id = {str(f.id): f for f in all_facts}
-    cited = [ledger.to_schema(by_id[i]) for i in fact_ids if i in by_id]
+    cited = [ledger.to_schema(by_id[i]) for i in fact_ids if i in by_id] + list(records or [])
     provider = provider or provider_for(db, user.id)
     return check_sentence(
         text,
         cited,
-        all_facts=[ledger.to_schema(f) for f in all_facts],
+        all_facts=[ledger.to_schema(f) for f in all_facts] + list(records or []),
         context_terms=_context(job),
         verifier=ProviderVerifier(provider),
     )
